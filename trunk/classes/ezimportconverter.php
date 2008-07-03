@@ -9,7 +9,7 @@
  */
 class eZImportConverter
 {
-	var $filters = array();
+	public $filters = array();
 	function eZImportConverter( $text )
 	{
 		$this->text = &$text;
@@ -18,14 +18,14 @@ class eZImportConverter
 	{
 		$this->filters[] = $name; 
 	}
-	function &run()
+	function run()
 	{
 		foreach ( $this->filters as $filter )
 		{
 			$impl = $this->filterInstance( $filter );
-			$this->text = $impl->recursiveFilter( $this->text );
+			$return = $impl->recursiveFilter( $this->text );
 		}
-		return $this->text;
+		return $return;
 	}
 	function recursiveFilter( $data )
 	{
@@ -45,34 +45,13 @@ class eZImportConverter
 	}
 	function filterInstance( $handlerName )
 	{
-		if ( eZExtension::findExtensionType( array( 'ini-name' => 'import.ini',
-                                                    'repository-group' => 'ImportSettings',
-                                                    'repository-variable' => 'FilterRepositoryDirectories',
-                                                    'extension-group' => 'ImportSettings',
-                                                    'extension-variable' => 'FilterExtensionDirectories',
-                                                    'subdir' => 'importfilters',
-                                                    'extension-subdir' => 'importfilters',
-                                                    'suffix-name' => 'filter.php',
-                                                    'type-directory' => false,
-                                                    'type' => $handlerName,
-                                                    'alias-group' => 'ImportSettings',
-                                                    'alias-variable' => 'FilterAlias' ),
-                                             $result ) )
+		$handlerClassName = $handlerName . 'filter';
+        if ( class_exists( $handlerClassName ) )
         {
-			$handlerFile = $result['found-file-path'];
-            if ( file_exists( $handlerFile ) )
-            {
-                include_once( $handlerFile );
-                $handlerClassName = $result['type'] . 'Filter';
-                    $handler =& new $handlerClassName;
-            
-            }
-            else
-            {
-            	$handler =& new eZImportFilter();
-            }
-		}
-		return $handler;
+        	$handler = new $handlerClassName;
+            return $handler;
+        }
+        else return false;
 	}
 }
 

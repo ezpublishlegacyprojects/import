@@ -9,8 +9,8 @@
  */
 class eZKeyConverter
 {
-	var $data  = array();
-	var $defaults  = array();
+	public $data  = array();
+	public $defaults  = array();
 	function eZKeyConverter( )
 	{
 
@@ -70,7 +70,7 @@ class eZKeyConverter
 	{
 		$this->data = array();
 	}
-	function &instance( )
+	static function &instance( )
 	{
 		if ( array_key_exists( "eZKeyConverter", $GLOBALS ) and ( $GLOBALS["eZKeyConverter"] ) )
 		{

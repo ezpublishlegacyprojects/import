@@ -15,7 +15,7 @@ class eZImportCommon
 	}
 	function &copyto ( &$object,$node)
 	{
-		$nodeAssignment =& eZNodeAssignment::create( array
+		$nodeAssignment = eZNodeAssignment::create( array
 		(
 		'contentobject_id' => $object->attribute( 'id' ),
 		'contentobject_version' => $object->attribute( 'current_version' ),
@@ -25,7 +25,7 @@ class eZImportCommon
 		);
 		$nodeAssignment->store();
 
-		$treenodegewerk =& eZContentObjectTreeNode::addChild($object->attribute( 'id' ),$node,true);
+		$treenodegewerk = eZContentObjectTreeNode::addChild($object->attribute( 'id' ),$node,true);
 		$operationResult = eZOperationHandler::execute(
 		'content', 'publish', array(
 		'object_id' => $object->attribute( 'id' ),

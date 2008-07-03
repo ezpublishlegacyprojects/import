@@ -11,8 +11,8 @@ include_once( 'lib/ezutils/classes/ezcli.php' );
 include_once( 'kernel/classes/ezscript.php' );
 include_once( 'kernel/classes/ezcontentobject.php');
 
-$cli =& eZCLI::instance();
-$script =& eZScript::instance( array( 'description' => ( "Example import script.\n" .
+$cli = eZCLI::instance();
+$script = eZScript::instance( array( 'description' => ( "Example import script.\n" .
                                                          "./extension/import/example/example.php" ),
                                       'use-session' => true,
                                       'use-modules' => true,
@@ -44,13 +44,10 @@ else
 }
 
 // start import Framework
-// -----------------------------------------------------
-include_once( 'lib/ezutils/classes/ezextension.php' );
-ext_class( 'import' , 'ezimportframework' );
 
 /*
 // get an Instance of the import Framework with importhandler 'csv' set start log message in import.log
-$if =& eZImportFramework::instance( 'csv' );
+$if = eZImportFramework::instance( 'csv' );
 
 // set all data to $if->datasets
 $if->getData( "extension/import/example.csv" );
@@ -61,7 +58,7 @@ $if->getData( "extension/import/example.csv" );
   @see importhandlers/ [handlername]import.php
   you can write your own importhandlser - standard is default
   ====================================================================== */
-$iframework =& eZImportFramework::instance( 'default' );
+$iframework = eZImportFramework::instance( 'default' );
 if ( $iframework === false ) 
 {
     $cli->error( 'Did you enable the import extension in the ini settings?' );

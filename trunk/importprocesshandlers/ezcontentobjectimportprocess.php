@@ -25,14 +25,15 @@ class eZContentObjectImportProcess extends eZImportProcess
 	}
 	function &run( &$data )
 	{
+		$this->setNamespace( $this->options["namespace"] );
 		$result = array();
-		$contentClassID = $this->options[EZ_IMPORT_PRESERVED_KEY_CLASS_ID];
+		$contentClassID = $this->options[eZImportFramework::PRESERVED_KEY_CLASS_ID];
 		
-		//$class = eZContentClass::fetch( $this->options[EZ_IMPORT_PRESERVED_KEY_CLASS_ID] );
+		//$class = eZContentClass::fetch( $this->options[eZImportFramework::PRESERVED_KEY_CLASS_ID] );
 		
-		$class = eZContentClass::fetchByIdentifier( $this->options[EZ_IMPORT_PRESERVED_KEY_CLASS] );
+		$class = eZContentClass::fetchByIdentifier( $this->options[eZImportFramework::PRESERVED_KEY_CLASS] );
 		
-		//$class = eZContentClass::fetch( $this->options[EZ_IMPORT_PRESERVED_KEY_CLASS_ID] );
+		//$class = eZContentClass::fetch( $this->options[eZImportFramework::PRESERVED_KEY_CLASS_ID] );
 		
 		if ( !is_object( $class ) )
 			$class = eZContentClass::fetch( $contentClassID );
@@ -75,18 +76,18 @@ class eZContentObjectImportProcess extends eZImportProcess
 			}
 
 			$locale =& eZLocale::instance();
-			if ( array_key_exists( EZ_IMPORT_PRESERVED_KEY_CREATION_TIMESTAMP, $item ) )
+			if ( array_key_exists( eZImportFramework::PRESERVED_KEY_CREATION_TIMESTAMP, $item ) )
 			{
-				$datetime_create = new eZDateTime( $item[EZ_IMPORT_PRESERVED_KEY_CREATION_TIMESTAMP] );
+				$datetime_create = new eZDateTime( $item[eZImportFramework::PRESERVED_KEY_CREATION_TIMESTAMP] );
 			}
 			else
 			{
 				$datetime_create = new eZDateTime();
 			}
 			
-			if ( array_key_exists( EZ_IMPORT_PRESERVED_KEY_MODIFICATION_TIMESTAMP, $item ) )
+			if ( array_key_exists( eZImportFramework::PRESERVED_KEY_MODIFICATION_TIMESTAMP, $item ) )
 			{
-				$datetime_modify = new eZDateTime( $item[EZ_IMPORT_PRESERVED_KEY_MODIFICATION_TIMESTAMP] );
+				$datetime_modify = new eZDateTime( $item[eZImportFramework::PRESERVED_KEY_MODIFICATION_TIMESTAMP] );
 			}
 			else
 			{
@@ -112,11 +113,11 @@ class eZContentObjectImportProcess extends eZImportProcess
 			//=================================================
 			
 			// set default import Method
-			if ( !array_key_exists( EZ_IMPORT_METHOD, $item ) and array_key_exists( EZ_IMPORT_METHOD, $this->options ) )
-    			$item[EZ_IMPORT_METHOD] = $this->options[EZ_IMPORT_METHOD];
-			if( !array_key_exists(EZ_IMPORT_METHOD, $item) )
+			if ( !array_key_exists( eZImportFramework::METHOD, $item ) and array_key_exists( eZImportFramework::METHOD, $this->options ) )
+    			$item[eZImportFramework::METHOD] = $this->options[eZImportFramework::METHOD];
+			if( !array_key_exists(eZImportFramework::METHOD, $item) )
 			{
-				$item[EZ_IMPORT_METHOD] = EZ_IMPORT_METHOD_NO_UPDATE;
+				$item[eZImportFramework::METHOD] = eZImportFramework::METHOD_NO_UPDATE;
 			}
 			
 			
@@ -125,28 +126,28 @@ class eZContentObjectImportProcess extends eZImportProcess
 			$contentObject = null;
 			$logMessageStart = null;
             
-            if ( array_key_exists( EZ_IMPORT_PRESERVED_KEY_REMOTE_ID, $item ) )
+            if ( array_key_exists( eZImportFramework::PRESERVED_KEY_REMOTE_ID, $item ) )
 			{
-			    $remoteIdString = EZ_IMPORT_REMOTE_ID_TAG . ":".$this->namespace.":".$item[EZ_IMPORT_PRESERVED_KEY_REMOTE_ID];
+			    $remoteIdString = eZImportFramework::REMOTE_ID_TAG . ":".$this->namespace.":".$item[eZImportFramework::PRESERVED_KEY_REMOTE_ID];
 			}
 			else
 			{
-			    $remoteIdString = EZ_IMPORT_REMOTE_ID_TAG . ":".$this->namespace.":" . md5( (string)mt_rand() . (string)mktime() );
+			    $remoteIdString = eZImportFramework::REMOTE_ID_TAG . ":".$this->namespace.":" . md5( (string)mt_rand() . (string)mktime() );
 			}
 		
 		
 			$owner = null;
 			
 			// set Owner
-			if ( $item[EZ_IMPORT_PRESERVED_KEY_OWNER_ID] and is_object( eZUser::fetch( $item[EZ_IMPORT_PRESERVED_KEY_OWNER_ID] ) ) )
-				$owner = $item[EZ_IMPORT_PRESERVED_KEY_OWNER_ID];
-			elseif( array_key_exists( EZ_IMPORT_PRESERVED_KEY_OWNER_ID, $this->options ) )
-				$owner = $this->options[EZ_IMPORT_PRESERVED_KEY_OWNER_ID];
+			if ( $item[eZImportFramework::PRESERVED_KEY_OWNER_ID] and is_object( eZUser::fetch( $item[eZImportFramework::PRESERVED_KEY_OWNER_ID] ) ) )
+				$owner = $item[eZImportFramework::PRESERVED_KEY_OWNER_ID];
+			elseif( array_key_exists( eZImportFramework::PRESERVED_KEY_OWNER_ID, $this->options ) )
+				$owner = $this->options[eZImportFramework::PRESERVED_KEY_OWNER_ID];
 			
 			
 			
 			// only can update if a remote id is set and the object exists
-			if( array_key_exists( EZ_IMPORT_PRESERVED_KEY_REMOTE_ID, $item ) )
+			if( array_key_exists( eZImportFramework::PRESERVED_KEY_REMOTE_ID, $item ) )
 			{
 				
 				$contentObject = eZContentObject::fetchByRemoteID( $remoteIdString );
@@ -156,10 +157,10 @@ class eZContentObjectImportProcess extends eZImportProcess
 			$isSetNoUpdateNoCreate=false;
 
 			// create or update object?	
-			switch ( $item[EZ_IMPORT_METHOD] )
+			switch ( $item[eZImportFramework::METHOD] )
 			{
-				case EZ_IMPORT_METHOD_AUTO:
-				case EZ_IMPORT_METHOD_UPDATE:
+				case eZImportFramework::METHOD_AUTO:
+				case eZImportFramework::METHOD_UPDATE:
 					
 					// only can update if a remote id is set and the object exists	
 					if( is_object($contentObject) )
@@ -190,7 +191,7 @@ class eZContentObjectImportProcess extends eZImportProcess
 							$logMessageStart = 'New Version ('. $version->attribute('version') .')';
 							break;
 					}
-				case EZ_IMPORT_METHOD_NO_UPDATE_IF_EXIST:	
+				case eZImportFramework::METHOD_NO_UPDATE_IF_EXIST:	
 					// if exist no update only return node e.g. for KeyConverter 
 					if( is_object($contentObject) )
 					{
@@ -210,7 +211,7 @@ class eZContentObjectImportProcess extends eZImportProcess
 						
 					}
 									
-				case EZ_IMPORT_METHOD_NO_UPDATE:
+				case eZImportFramework::METHOD_NO_UPDATE:
 				default:
 					
 					// set remote_id null if there is an object with the same remote_id
@@ -219,7 +220,7 @@ class eZContentObjectImportProcess extends eZImportProcess
 					{
 						
 						$log = "[Create] Remote_id already exists! Resetting (". $remoteIdString .") to default";
-						$item[EZ_IMPORT_PRESERVED_KEY_REMOTE_ID] = null;
+						$item[eZImportFramework::PRESERVED_KEY_REMOTE_ID] = null;
 						eZImportFramework::log( $log );
 					}
 					
@@ -247,7 +248,7 @@ class eZContentObjectImportProcess extends eZImportProcess
 			}
 			
 			
-			$version->setAttribute( 'status', EZ_VERSION_STATUS_DRAFT );
+			$version->setAttribute( 'status', eZContentObjectVersion::STATUS_DRAFT );
     		$version->store();
 			
 			// === End of Switch - create or update object
@@ -309,7 +310,7 @@ class eZContentObjectImportProcess extends eZImportProcess
 				
 					
 					// if $item[EZ_IMPORT_PRESERVED_KEY_REMOTE_ID] == null ez will generate a remoteid
-					$contentObject->setAttribute( 'remote_id', $item[EZ_IMPORT_PRESERVED_KEY_REMOTE_ID] );
+					$contentObject->setAttribute( 'remote_id', $item[eZImportFramework::PRESERVED_KEY_REMOTE_ID] );
 					//$contentObject->setAttribute( 'remote_id', $item[$remote_id] );
 	//				$contentObject->setAttribute( 'name', $item[$object_name] );
 
@@ -343,14 +344,14 @@ class eZContentObjectImportProcess extends eZImportProcess
 			
 			$contentObject->setAttribute( 'modified', $datetime_modify->timeStamp() );
 			$contentObject->setAttribute( 'published', $datetime_create->timeStamp() );
-			$contentObject->setAttribute( 'status', EZ_VERSION_STATUS_DRAFT );
+			$contentObject->setAttribute( 'status', eZContentObjectVersion::STATUS_DRAFT );
 			
 			
 			
 		
 			// set remote_id : if $item['remote_id']=null the system genereate a new remote id
 			// e.g.   ezimport:namespace:remote_id			
-			$contentObject->setAttribute( 'remote_id', EZ_IMPORT_REMOTE_ID_TAG . ":".$this->namespace.":".$contentObject->attribute( 'remote_id' ) );
+			$contentObject->setAttribute( 'remote_id', eZImportFramework::REMOTE_ID_TAG . ":".$this->namespace.":".$contentObject->attribute( 'remote_id' ) );
 			$contentObject->store();
 			
 			
@@ -373,7 +374,7 @@ class eZContentObjectImportProcess extends eZImportProcess
 			$contentObject->setAttribute( 'modified', $datetime_modify->timeStamp() );
 			$contentObject->setAttribute( 'published', $datetime_create->timeStamp() );	
 			// set status on publish - otherwise you can't use this object as an related object
-			$contentObject->setAttribute( 'status', EZ_VERSION_STATUS_PUBLISHED );
+			$contentObject->setAttribute( 'status', eZContentObjectVersion::STATUS_PUBLISHED );
 			$contentObject->store();
 			
 				
@@ -397,10 +398,10 @@ class eZContentObjectImportProcess extends eZImportProcess
 			//Free some memory
 			eZContentObject::clearCache();
 			
-			if ( array_key_exists( EZ_IMPORT_LANGUAGE_TAG, $this->options ) and $this->options[EZ_IMPORT_LANGUAGE_TAG] != eZContentObject::defaultLanguage() )
+			if ( array_key_exists(eZImportFramework::LANGUAGE_TAG, $this->options ) and $this->options[eZImportFramework::LANGUAGE_TAG] != eZContentObject::defaultLanguage() )
 			{
 
-				eZContentObjectImportProcess::changeLanguageForObject( $contentObject->attribute("id"), eZContentObject::defaultLanguage(),  $this->options[EZ_IMPORT_LANGUAGE_TAG] );
+				eZContentObjectImportProcess::changeLanguageForObject( $contentObject->attribute("id"), eZContentObject::defaultLanguage(),  $this->options[eZImportFramework::LANGUAGE_TAG] );
 			}
 		
 			array_push($result, $contentObject);
@@ -481,8 +482,10 @@ WHERE
                 foreach ( $data as $key => $item )
                 {
                     $option->addOption( array( 'value' => $item['name'],
-                    'comment' => $item['comment'],
-                    'additional_price' => ( isset( $item['price'] ) ? $item['price'] : 0 ) ) );
+                    						   'comment' => $item['comment'],
+                    						   'description' => $item['description'],
+                                               'weight' => $item['weight'],
+                    						   'additional_price' => ( isset( $item['price'] ) ? $item['price'] : 0 ) ) );
                 }
                 $contentObjectAttribute->setContent( $option );
                 $contentObjectAttribute->store();
@@ -650,7 +653,8 @@ WHERE
 				$contentObjectAttribute->store();
 				break;
 			case 'ezxmltext' :
-				if ( is_a( $data, 'ezdomdocument' ) )
+				//@TODO remove dependancy on ezxml lib
+				if ( is_a( $data, 'DOMDocument' ) or is_a( $data, 'DOMNode' ) )
 				{
 					$contentObjectAttribute->setAttribute( "data_text", eZXMLTextType::domString( $data ) );
 				}
@@ -665,7 +669,8 @@ WHERE
 				        $cli->output( $contentObjectAttribute->ValidationError );
 				    }
 				}
-				$contentObjectAttribute->setAttribute( 'data_int', EZ_XMLTEXT_VERSION_TIMESTAMP );
+				
+				$contentObjectAttribute->setAttribute( 'data_int', eZXMLTextType::VERSION_TIMESTAMP );
 				$contentObjectAttribute->store();
 				break;
 			case 'ezenum' :
@@ -760,7 +765,7 @@ class text2xml extends eZSimplifiedXMLInput
                 $GLOBALS[$isInputValid] = false;
                 $errorMessage = implode( ' ', $parser->getMessages() );
                 $contentObjectAttribute->setValidationError( $errorMessage );
-                return EZ_INPUT_VALIDATOR_STATE_INVALID;
+                return eZInputValidator::STATE_INVALID;
             }
 
             $xmlString = eZXMLTextType::domString( $document );
@@ -788,15 +793,15 @@ class text2xml extends eZSimplifiedXMLInput
                 {
                     $contentObjectAttribute->setValidationError( ezi18n( 'kernel/classes/datatypes',
                                                                          'Content required' ) );
-                    return EZ_INPUT_VALIDATOR_STATE_INVALID;
+                    return eZInputValidator::STATE_INVALID;
                 }
             }
             $contentObjectAttribute->setValidationLog( $parser->getMessages() );
 
             $contentObjectAttribute->setAttribute( "data_text", $xmlString );
-            return EZ_INPUT_VALIDATOR_STATE_ACCEPTED;
+            return eZInputValidator::STATE_ACCEPTED;
         }
-        return EZ_INPUT_VALIDATOR_STATE_ACCEPTED;
+        return eZInputValidator::STATE_ACCEPTED;
     }
 }
 class fakehttp extends eZHTTPTool 

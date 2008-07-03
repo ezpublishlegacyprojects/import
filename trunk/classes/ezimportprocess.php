@@ -38,47 +38,22 @@ define("EZ_IMPORT_METHOD", "import_method");
 
 class eZImportProcess
 {
-	var $options;
-	var $namespace;
+	public $options;
+	public $namespace;
 	function eZImportProcess()
 	{
 		
 	}
 	function &instance( $handlerName, $options )
 	{
-		if ( eZExtension::findExtensionType( array( 'ini-name' => 'import.ini',
-                                                    'repository-group' => 'ImportSettings',
-                                                    'repository-variable' => 'RepositoryDirectories',
-                                                    'extension-group' => 'ImportSettings',
-                                                    'extension-variable' => 'ExtensionDirectories',
-                                                    'subdir' => 'importprocesshandlers',
-                                                    'extension-subdir' => 'importprocesshandlers',
-                                                    'suffix-name' => 'importprocess.php',
-                                                    'type-directory' => false,
-                                                    'type' => $handlerName,
-                                                    'alias-group' => 'ImportSettings',
-                                                    'alias-variable' => 'HandlerAlias' ),
-                                             $result ) )
+		$handlerClassName = $handlerName . 'ImportProcess';
+        if ( class_exists( $handlerClassName ) )
         {
-			$handlerFile = $result['found-file-path'];
-            if ( file_exists( $handlerFile ) )
-            {
-                include_once( $handlerFile );
-                $handlerClassName = $result['type'] . 'ImportProcess';
-                if ( isset( $handlers[$result['type']] ) )
-                {
-                    $handler =& $handlers[$result['type']];
-                    $handler->reset();
-                }
-                else
-                {
-                    $handler =& new $handlerClassName;
-                    $handlers[$result['type']] =& $handler;
-                }
-                $handler->setOptions( $options );
-            }
-		}
-		return $handler;
+        	$handler = new $handlerClassName;
+            $handler->setOptions( $options );
+            return $handler;
+        }
+        else return false;
 	}
 	function setNamespace( $namespace )
 	{
@@ -88,7 +63,7 @@ class eZImportProcess
 	{
 		$this->options = $array;
 	}
-	function &run ( &$data, $namespace, $options )
+	public function run ( &$data, $namespace, $options )
 	{
 		
 	}
