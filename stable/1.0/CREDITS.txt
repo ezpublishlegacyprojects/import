@@ -4,4 +4,4 @@ eZ Import Framework Extenstion "import"
 Developed by
 Björn Dieding   ( bjoern@xrow.de )
 Sören Meyer		( soeren@xrow.de )
-Felix Woldt		( felix@jac-systeme.de )
+Felix Woldt		( felix[at]jac-systeme.de )

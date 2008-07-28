@@ -1,0 +1,14 @@
+CHANGELOG extension import
+
+ez version 3.x:
+
+1.0.0 stable/1.0
+================
+- initial version
+
+1.0.1 stable/1.0 (felix.jac)
+============================
+- possible to define class_identifer for every import dataset
+- use site.ini logdir for import.log
+- support to import datatype ezbinaryfile
+- remove some warnings

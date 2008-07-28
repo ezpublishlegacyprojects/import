@@ -15,6 +15,9 @@ define( "EZ_IMPORT_PRESERVED_KEY_CLASS", "contentClass" );
 define( "EZ_IMPORT_PRESERVED_KEY_CREATION_TIMESTAMP", "creation_timestamp" );
 define( "EZ_IMPORT_PRESERVED_KEY_MODIFICATION_TIMESTAMP", "modification_timestamp" );
 define( "EZ_IMPORT_PRESERVED_KEY_REMOTE_ID", "remote_id" );
+define( "EZ_IMPORT_PRESERVED_KEY_CONTENT_OBJECT_ID", "contentobject_id" );
+
+
 define( "EZ_IMPORT_REMOTE_ID_TAG", "ezimport" );
 define( "EZ_IMPORT_LANGUAGE_TAG", "language" );
 
@@ -26,15 +29,15 @@ define("EZ_IMPORT_METHOD", "import_method");
 	// updaten if possible
 	define( "EZ_IMPORT_METHOD_AUTO", "auto" );
 	define( "EZ_IMPORT_METHOD_UPDATE", "update" );
-	
+
 	// never update records always create
 	define( "EZ_IMPORT_METHOD_NO_UPDATE", "always_create" );
 	define( "EZ_IMPORT_METHOD_ALWAYS_CREATE", "always_create" );
-	
+
 	// if record exists - no update - no creation - only return node
 	define( "EZ_IMPORT_METHOD_NO_UPDATE_IF_EXIST", "no_update_if_exist" );
-	
-//-------------------------------------------------------	
+
+//-------------------------------------------------------
 
 class eZImportProcess
 {
@@ -42,7 +45,7 @@ class eZImportProcess
 	var $namespace;
 	function eZImportProcess()
 	{
-		
+
 	}
 	function &instance( $handlerName, $options )
 	{
@@ -90,7 +93,7 @@ class eZImportProcess
 	}
 	function &run ( &$data, $namespace, $options )
 	{
-		
+
 	}
 }
 
