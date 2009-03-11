@@ -84,14 +84,14 @@ class eZImportFramework
     {
     }
 
-    static function &instance ( $handlerName = 'default' )
+    static function &instance ( $handlerName = 'Default' )
     {
 		$handlerClassName = $handlerName . 'ImportHandler';
         if ( class_exists( $handlerClassName ) )
         {
         	return new $handlerClassName( );
         }
-		throw new Exception( "Import handler not found." );
+		throw new Exception( "Import handler (" . $handlerClassName . ") not found." );
     }
 
     function getData ( $namespace )
@@ -159,21 +159,20 @@ class eZImportFramework
             $processHandler );
         $processHandlerImp->setOptions( 
             $options );
-        if ( $namespace and ! $options['ignore_data_namespace'] )
+        if ( $namespace and !$options['ignore_data_namespace'] )
         {
-            $processHandlerImp->setNamespace( 
-                $namespace );
-            $result = $processHandlerImp->run( 
-                $this->data[$namespace], 
-                $namespace );
-        } elseif ( $namespace and $options['ignore_data_namespace'] )
+            $processHandlerImp->setNamespace( $namespace );
+            $result = $processHandlerImp->run( $this->data[$namespace], $namespace );
+        }
+        elseif ( $namespace and $options['ignore_data_namespace'] )
         {
             $processHandlerImp->setNamespace( 
                 $namespace );
             $result = $processHandlerImp->run( 
                 $this->data, 
                 $namespace );
-        } else
+        }
+        else
         {
             $processHandlerImp->setNamespace( 
                 null );
@@ -187,6 +186,7 @@ class eZImportFramework
             $this->resetSiteAccess();
         unset( 
             $processHandlerImp );
+
         return $result;
     }
 

@@ -9,7 +9,7 @@
  * @license http://www.gnu.org/licenses/gpl.txt GPL License
  */
 // this parser should be used for ezxml datatype
-include_once( "kernel/classes/datatypes/ezxmltext/handlers/input/ezsimplifiedxmlinputparser.php" );
+
 class htmlparserfilter extends eZImportConverter
 {
 	function htmlparserfilter()
@@ -17,10 +17,12 @@ class htmlparserfilter extends eZImportConverter
 		
 	}
 	// return a domdocument with ezxml
-	function filter ( &$data )
+	function filter ( $data )
 	{
-        $parser = new eZSimplifiedXMLInputParser( );
-        $parser->setParseLineBreaks( true );
+		$data = str_replace( "\r", '', $data );
+        $data = str_replace( "\n", '', $data );
+        $data = str_replace( "\t", ' ', $data );
+        $parser = new eZSimplifiedXMLInputParser( false, false, 0, false );
         $data = $parser->process( $data );
 		return $data;
 	}

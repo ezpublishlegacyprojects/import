@@ -23,7 +23,7 @@ class eZContentObjectImportProcess extends eZImportProcess
 	{
 
 	}
-	function &run( &$data )
+	function &run( $data )
 	{
 		$this->setNamespace( $this->options["namespace"] );
 		$result = array();
@@ -166,7 +166,7 @@ class eZContentObjectImportProcess extends eZImportProcess
 					if( is_object($contentObject) )
 					{							
 							// get a new version of the content object
-							$version = $contentObject->createNewVersion();
+							$version = $contentObject->createNewVersion(false, false, 'eng-GB', false);
 							
 							// if new version delete all existing objectrelations 
 							// because they will be set again otherwise there are double entities
@@ -179,7 +179,11 @@ class eZContentObjectImportProcess extends eZImportProcess
 							$fromObjectID = $contentObject->attribute('id');
 							$attributeID = false;
 							
-							eZContentObject::removeContentObjectRelation($toObjectID, $fromObjectVersion, $fromObjectID, $attributeID);
+
+							#eZContentObject::removeContentObjectRelation($toObjectID, $fromObjectVersion, $fromObjectID, $attributeID);
+							$contentObject->removeContentObjectRelation($toObjectID, $fromObjectVersion, $attributeID);
+							#eZContentObject::removeContentObjectRelation($toObjectID, $fromObjectVersion, $fromObjectID, $attributeID);
+							#eZContentObject::removeContentObjectRelation($toObjectID, $fromObjectVersion, $attributeID);
 					
 				
 				
@@ -329,7 +333,7 @@ class eZContentObjectImportProcess extends eZImportProcess
 				
 			// get all attributes and modify data if needed
 			// ----------------------------------------------				
-			$attribs =& $contentObject->contentObjectAttributes();		
+			$attribs = $contentObject->contentObjectAttributes();		
 			
 			for($i=0;$i<count($attribs);$i++){
 				$ident = $attribs[$i]->attribute("contentclass_attribute_identifier");
@@ -350,7 +354,8 @@ class eZContentObjectImportProcess extends eZImportProcess
 			
 		
 			// set remote_id : if $item['remote_id']=null the system genereate a new remote id
-			// e.g.   ezimport:namespace:remote_id			
+			// e.g.   ezimport:namespace:remote_id
+		
 			$contentObject->setAttribute( 'remote_id', eZImportFramework::REMOTE_ID_TAG . ":".$this->namespace.":".$contentObject->attribute( 'remote_id' ) );
 			$contentObject->store();
 			
@@ -433,7 +438,7 @@ WHERE
 		$contentClassAttribute = $contentObjectAttribute->attribute( 'contentclass_attribute' );
 		$dataTypeString = $contentClassAttribute->attribute( 'data_type_string' );
 		
-		if ( is_a( $data, 'ezimportconverter' ) )
+		if ( $data instanceof eZImportConverter )
 		{
 			$data = $data->run();
 		}
@@ -471,6 +476,16 @@ WHERE
     		 	$gp->store();
 				
 			break;
+			case 'ezmatrix' :
+		        $matrix = $contentObjectAttribute->attribute( 'content' );
+		    	$matrix->Cells = $data;
+		    	$matrix->NumRows = (int) count($data) / $matrix->NumColumns;
+                   $contentObjectAttribute->setAttribute( 'data_text', $matrix->xmlString() );
+                   $matrix->decodeXML( $contentObjectAttribute->attribute( 'data_text' ) );
+                   $contentObjectAttribute->setContent( $matrix );
+                   $contentObjectAttribute->store();
+		     break;
+	
 			case 'ezfloat' :
 			$contentObjectAttribute->setAttribute( 'data_float', $data );
 			$contentObjectAttribute->store();
@@ -527,6 +542,70 @@ WHERE
 	                                $result );
 					$contentObjectAttribute->store();
 				}
+				elseif ( count_chars($data) >= 5 )
+				{
+				    $url = parse_url( $data );
+				    if ($url['scheme'] == 'http' && array_key_exists('host', $url) && array_key_exists('path', $url))  
+				    {
+    				    $result = array( 'errors' => array(),
+                             'require_storage' => false );
+                        $errors = $result['errors'];
+                        $handler =  $contentObjectAttribute->content();
+                        if ( !$handler )
+                        {
+                            $errors[] = array( 'description' => ezi18n( 'kernel/classe/datatypes/ezimage',
+                                                                        'Failed to fetch Image Handler. Please contact the site administrator.' ) );
+                            return false;
+                        }
+                        $filename= $data;
+                        $imageAltText = false;
+                        $originalFilename = false;
+                        $contentObjectAttributeData =$handler->ContentObjectAttributeData;
+                        if ( count_chars($filename) <= 5 )
+                        {
+                            eZDebug::writeError( "The image '$filename' does not exist, cannot initialize image attribute with it",
+                                                 'eZImageAliasHandler::initializeFromFile' );
+                            return false;
+                        }
+                        $handler->increaseImageSerialNumber();
+                        if ( !$originalFilename )
+                            $originalFilename = basename( $filename );
+                        
+                        $mimeData = eZMimeType::findByFileContents( $filename );
+                        if ( !$mimeData['is_valid'] and
+                             $originalFilename != $filename )
+                        {
+                            $mimeData = eZMimeType::findByFileContents( $originalFilename );
+                        }
+                
+                        $attr = false;
+                        $handler->removeAliases( $attr );
+                        $handler->setOriginalAttributeDataValues( $contentObjectAttributeData['id'],
+                                                               $contentObjectAttributeData['version'],
+                                                               $contentObjectAttributeData['language_code'] );
+                        $contentVersion = eZContentObjectVersion::fetchVersion( $contentObjectAttributeData['version'],
+                                                                                $contentObjectAttributeData['contentobject_id'] );
+                        $objectName = $handler->imageName( $contentObjectAttributeData, $contentVersion );
+                        $objectPathString = $handler->imagePath( $contentObjectAttributeData, $contentVersion, true );
+                
+                        eZMimeType::changeBaseName( $mimeData, $objectName );
+                        eZMimeType::changeDirectoryPath( $mimeData, $objectPathString );
+                        if ( !file_exists( $mimeData['dirpath'] ) )
+                        {
+                            eZDir::mkdir( $mimeData['dirpath'], false, true );
+                        }
+                
+                        eZFileHandler::copy( $filename, $mimeData['url'] );
+                
+                        $status = $handler->initialize( $mimeData, $originalFilename, $imageAltText );
+                        $result['require_storage'] = $handler->isStorageRequired();
+    					$contentObjectAttribute->store();
+				    }
+				    else
+					   $contentObjectAttribute->store();
+				}
+				else
+				   $contentObjectAttribute->store();
 				break;
 			case 'eztime' :
 				$contentObjectAttribute->setAttribute( 'data_int', $data );
@@ -654,9 +733,33 @@ WHERE
 				break;
 			case 'ezxmltext' :
 				//@TODO remove dependancy on ezxml lib
-				if ( is_a( $data, 'DOMDocument' ) or is_a( $data, 'DOMNode' ) )
+				if ( $data instanceof DOMDocument or $data instanceof DOMNode )
 				{
 					$contentObjectAttribute->setAttribute( "data_text", eZXMLTextType::domString( $data ) );
+										
+					$linkNodes = $data->getElementsByTagName( 'link' );
+					$links = $data->getElementsByTagName( 'link' );
+					eZXMLTextType::transformLinksToRemoteLinks( $links );     
+                    foreach ( $linkNodes as $linkNode )
+                    {
+                        $href = $linkNode->getAttribute( 'href' );
+                        if ( !$href )
+                            continue;
+                        $urlObj = eZURL::urlByURL( $href );
+            
+                        if ( !$urlObj )
+                        {
+                            $urlObj = eZURL::create( $href );
+                            $urlObj->store();
+                        }
+            
+                        $linkNode->removeAttribute( 'href' );
+                        $linkNode->setAttribute( 'url_id', $urlObj->attribute( 'id' ) );
+                        $urlObjectLink = eZURLObjectLink::create( $urlObj->attribute( 'id' ),
+                                                                  $contentObjectAttribute->attribute( 'id' ),
+                                                                  $contentObjectAttribute->attribute( 'version' ) );
+                        $urlObjectLink->store();
+                    }
 				}
 				else 
 				{
@@ -671,6 +774,7 @@ WHERE
 				}
 				
 				$contentObjectAttribute->setAttribute( 'data_int', eZXMLTextType::VERSION_TIMESTAMP );
+
 				$contentObjectAttribute->store();
 				break;
 			case 'ezenum' :
@@ -774,10 +878,11 @@ class text2xml extends eZSimplifiedXMLInput
 
             $relatedObjectIDArray = $parser->getRelatedObjectIDArray();
             $urlIDArray = $parser->getUrlIDArray();
-            
+            var_dump( $urlIDArray );
             if ( count( $urlIDArray ) > 0 )
             {
                 $this->updateUrlObjectLinks( $contentObjectAttribute, $urlIDArray );
+                var_dump( $contentObjectAttribute );
             }
 
             if ( count( $relatedObjectIDArray ) > 0 )
