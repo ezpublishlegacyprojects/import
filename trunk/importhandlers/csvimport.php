@@ -8,8 +8,8 @@
  * @copyright Copyright (C) 2007 xrow. All rights reserved.
  * @license http://www.gnu.org/licenses/gpl.txt GPL License
  */
-include_once("extension/ezpowerlib/ezpowerlib.php");
-include_once("File/CSV.php");
+
+require_once("File/CSV.php");
     
 class CSVImportHandler extends eZImportFramework 
 {

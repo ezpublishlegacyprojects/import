@@ -53,7 +53,10 @@ class eZImportProcess
             $handler->setOptions( $options );
             return $handler;
         }
-        else return false;
+        else
+        {
+            throw new Exception( "eZImportProcess named " . $handlerName . " not found."  );
+        }
 	}
 	function setNamespace( $namespace )
 	{

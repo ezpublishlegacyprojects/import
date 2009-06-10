@@ -1,4 +1,5 @@
 <?php
+require_once( 'autoload.php' );
 /**
  * File example.php
  *
@@ -7,9 +8,6 @@
  * @copyright Copyright (C) 2007 xrow. All rights reserved.
  * @license http://www.gnu.org/licenses/gpl.txt GPL License
  */
-include_once( 'lib/ezutils/classes/ezcli.php' );
-include_once( 'kernel/classes/ezscript.php' );
-include_once( 'kernel/classes/ezcontentobject.php');
 
 $cli = eZCLI::instance();
 $script = eZScript::instance( array( 'description' => ( "Example import script.\n" .
