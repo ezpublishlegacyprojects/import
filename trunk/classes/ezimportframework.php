@@ -44,7 +44,7 @@ class eZImportFramework
     function __construct()
     {
         $this->eZKeyConverter = eZKeyConverter::instance();
-        if ( ! $GLOBALS['eZImportFrameworkEnabled'] )
+        if ( !array_key_exists( 'eZImportFrameworkEnabled', $GLOBALS ) )
         {
             $GLOBALS['eZImportFrameworkEnabled'] = true;
             eZImportFramework::log( "--------------------------------" );
@@ -83,7 +83,8 @@ class eZImportFramework
         $handlerClassName = $handlerName . 'ImportHandler';
         if ( class_exists( $handlerClassName ) )
         {
-            return new $handlerClassName( );
+        	$impl = new $handlerClassName( );
+            return $impl;
         }
         else
         {

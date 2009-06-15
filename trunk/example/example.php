@@ -99,7 +99,7 @@ $dataset[0] = array(
     'description' => $description_conf , 
     eZImportFramework::PRESERVED_KEY_CREATION_TIMESTAMP => time() , 
     eZImportFramework::PRESERVED_KEY_MODIFICATION_TIMESTAMP => time() , 
-    eZImportFramework::PRESERVED_KEY_REMOTE_ID => 'id 5' , 
+    eZImportFramework::PRESERVED_KEY_REMOTE_ID => 'ABCDEFGH123456789' , 
     eZImportFramework::METHOD => eZImportFramework::METHOD_AUTO 
 )// if an object with remote_id exists update this contentobject and generate a new Version
 ;

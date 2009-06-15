@@ -1,4 +1,5 @@
 <?php
+
 /**
  * File containing the eZContentObjectImportProcess class.
  *
@@ -10,15 +11,27 @@
 
 class eZContentObjectImportProcess extends eZImportProcess
 {
+
     function &run( $data )
     {
-        $this->setNamespace( $this->options["namespace"] );
+        if ( array_key_exists( "namespace", $this->options ) )
+        {
+            $this->setNamespace( $this->options["namespace"] );
+        }
         $result = array();
-        $contentClassID = $this->options[eZImportFramework::PRESERVED_KEY_CLASS_ID];
-        $class = eZContentClass::fetchByIdentifier( $this->options[eZImportFramework::PRESERVED_KEY_CLASS] );
-
-        if ( ! is_object( $class ) )
+        if ( isset( $this->options[eZImportFramework::PRESERVED_KEY_CLASS_ID] ) )
+        {
+            $contentClassID = $this->options[eZImportFramework::PRESERVED_KEY_CLASS_ID];
             $class = eZContentClass::fetch( $contentClassID );
+        }
+        elseif ( isset( $this->options[eZImportFramework::PRESERVED_KEY_CLASS] ) )
+        {
+            $class = eZContentClass::fetchByIdentifier( $this->options[eZImportFramework::PRESERVED_KEY_CLASS] );
+        }
+        if ( ! is_object( $class ) )
+        {
+            throw new Exception( 'Class not found.' );
+        }
         
         foreach ( $data as $item )
         {
@@ -119,7 +132,7 @@ class eZContentObjectImportProcess extends eZImportProcess
             $owner = null;
             
             // set Owner
-            if ( $item[eZImportFramework::PRESERVED_KEY_OWNER_ID] and is_object( eZUser::fetch( $item[eZImportFramework::PRESERVED_KEY_OWNER_ID] ) ) )
+            if ( array_key_exists( eZImportFramework::PRESERVED_KEY_OWNER_ID, $item ) and is_object( eZUser::fetch( $item[eZImportFramework::PRESERVED_KEY_OWNER_ID] ) ) )
                 $owner = $item[eZImportFramework::PRESERVED_KEY_OWNER_ID];
             elseif ( array_key_exists( eZImportFramework::PRESERVED_KEY_OWNER_ID, $this->options ) )
                 $owner = $this->options[eZImportFramework::PRESERVED_KEY_OWNER_ID];
@@ -244,8 +257,8 @@ class eZContentObjectImportProcess extends eZImportProcess
                 $node_defaults['sort_order'] = $this->options['sort_order'];
                 //create nodes
             $merged_node_array = array_merge( $node_defaults, array( 
-                'contentobject_id' => $contentObject->attribute( 'id' ),
-				'contentobject_version' => $contentObject->attribute( 'current_version' ) , /* @TODO version */
+                'contentobject_id' => $contentObject->attribute( 'id' ) , 
+                'contentobject_version' => $contentObject->attribute( 'current_version' ) , /* @TODO version */
                 'parent_node' => $parentContentObjectTreeNode->attribute( 'node_id' ) , 
                 'is_main' => 1 
             ) );
@@ -278,7 +291,7 @@ class eZContentObjectImportProcess extends eZImportProcess
             
             // if $item[eZImportFramework::PRESERVED_KEY_REMOTE_ID] == null ez will generate a remoteid
             $contentObject->setAttribute( 'remote_id', $item[eZImportFramework::PRESERVED_KEY_REMOTE_ID] );
-
+            
             $contentObject->setAttribute( 'modified', $datetime_modify->timeStamp() );
             $contentObject->setAttribute( 'published', $datetime_create->timeStamp() );
             //	$contentObject->setAttribute( 'owner_id', $owner );
@@ -307,7 +320,7 @@ class eZContentObjectImportProcess extends eZImportProcess
             
             $contentObject->setAttribute( 'modified', $datetime_modify->timeStamp() );
             $contentObject->setAttribute( 'published', $datetime_create->timeStamp() );
-            $contentObject->setAttribute( 'status', eZContentObjectVersion::STATUS_DRAFT );
+            $contentObject->setAttribute( 'status', eZContentObjectVersion::STATUS_INTERNAL_DRAFT );
             
             // set remote_id : if $item['remote_id']=null the system genereate a new remote id
             // e.g.   ezimport:namespace:remote_id
@@ -320,6 +333,15 @@ class eZContentObjectImportProcess extends eZImportProcess
                 'object_id' => $contentObject->attribute( 'id' ) , 
                 'version' => $version->attribute( 'version' ) 
             ) );
+            switch ( $operationResult['status'] )
+            {
+                case eZModuleOperationInfo::STATUS_REPEAT:
+                case eZModuleOperationInfo::STATUS_HALTED:
+                case eZModuleOperationInfo::STATUS_CANCELLED:
+                    {
+                        throw new Exception( "Operation result was not ok. Disable all triggers." );
+                    }
+            }
             
             // update objectname		
             
@@ -333,8 +355,9 @@ class eZContentObjectImportProcess extends eZImportProcess
             // set status on publish - otherwise you can't use this object as an related object
             $contentObject->setAttribute( 'status', eZContentObjectVersion::STATUS_PUBLISHED );
             $contentObject->store();
-            
+            $contentObject = eZContentObject::fetch( $contentObject->attribute( 'id' ) );
             // @TODO Update or Create ContentObject	
+            
 
             $log = $logMessageStart . ": " . $contentObject->attribute( "name" ) . " #" . $contentObject->attribute( "id" );
             if ( $item['parentNodes'] )
@@ -348,7 +371,7 @@ class eZContentObjectImportProcess extends eZImportProcess
             }
             else
             {
-            	$log .= " and no Main Node ";
+                $log .= " and no Main Node ";
             }
             
             eZImportFramework::log( $log );
@@ -816,7 +839,7 @@ class text2xml extends eZSimplifiedXMLInput
 
             $relatedObjectIDArray = $parser->getRelatedObjectIDArray();
             $urlIDArray = $parser->getUrlIDArray();
-
+            
             if ( count( $urlIDArray ) > 0 )
             {
                 $this->updateUrlObjectLinks( $contentObjectAttribute, $urlIDArray );
@@ -847,28 +870,4 @@ class text2xml extends eZSimplifiedXMLInput
     }
 }
 
-class fakehttp extends eZHTTPTool
-{
-
-    function fakehttp()
-    {
-    
-    }
-
-    function hasPostVariable( $name )
-    {
-        true;
-    }
-
-    function postVariable()
-    {
-        return $this->fakeddata;
-    }
-
-    function setVariable( $name, $value )
-    {
-        $this->fakeddata = $value;
-    }
-    var $fakeddata;
-}
 ?>

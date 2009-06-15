@@ -14,12 +14,7 @@ class eZImportProcess
     public $options;
     public $namespace;
 
-    function eZImportProcess()
-    {
-    
-    }
-
-    function &instance( $handlerName, $options )
+    static function &instance( $handlerName, $options = array() )
     {
         $handlerClassName = $handlerName . 'ImportProcess';
         if ( class_exists( $handlerClassName ) )
