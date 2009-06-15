@@ -18,8 +18,8 @@ Björn Dieding   ( bjoern@xrow.de )
 
 State: Stable
 
-PubSVN:
-http://pubsvn.ez.no/viewcvs/community/trunk/extension/import/
+Project Home:
+http://projects.ez.no/import/
 
 Description:
 Basic classes for abstracting data imports

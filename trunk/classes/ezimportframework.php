@@ -1,4 +1,5 @@
 <?php
+
 /**
  * File containing the eZImportFramework class.
  *
@@ -38,7 +39,7 @@ class eZImportFramework
     public $data;
     public $eZKeyConverter;
     public $source;
-    public $namespaces = array( );
+    public $namespaces = array();
 
     function __construct()
     {
@@ -46,91 +47,75 @@ class eZImportFramework
         if ( ! $GLOBALS['eZImportFrameworkEnabled'] )
         {
             $GLOBALS['eZImportFrameworkEnabled'] = true;
-            eZImportFramework::log( 
-                "--------------------------------" );
-            eZImportFramework::log( 
-                "STARTING IMPORT" );
-            eZImportFramework::log( 
-                "--------------------------------" );
+            eZImportFramework::log( "--------------------------------" );
+            eZImportFramework::log( "STARTING IMPORT" );
+            eZImportFramework::log( "--------------------------------" );
         }
     }
 
-    function destroy()
+    public function destroy()
     {
         $this->freeMem();
         $GLOBALS['eZImportFrameworkEnabled'] = false;
-        eZImportFramework::log( 
-            "--------------------------------" );
-        eZImportFramework::log( 
-            "STOPING IMPORT" );
-        eZImportFramework::log( 
-            "--------------------------------" );
+        eZImportFramework::log( "--------------------------------" );
+        eZImportFramework::log( "STOPING IMPORT" );
+        eZImportFramework::log( "--------------------------------" );
     }
 
-    function setDataSource ( &$source, $parameters = array() )
+    public function setDataSource( &$source, $parameters = array() )
     {
         $this->source = & $source;
         $this->parameters = & $parameters;
     }
 
-    function freeMem ()
+    public function freeMem()
     {
-        unset( 
-            $this->data );
+        unset( $this->data );
     }
 
     //does something to cleanup this mess
-    function reset ()
+    public function reset()
     {
     }
 
-    static function &instance ( $handlerName = 'Default' )
+    static function &instance( $handlerName = 'Default' )
     {
-		$handlerClassName = $handlerName . 'ImportHandler';
+        $handlerClassName = $handlerName . 'ImportHandler';
         if ( class_exists( $handlerClassName ) )
         {
-        	return new $handlerClassName( );
+            return new $handlerClassName( );
         }
-		throw new Exception( "Import handler (" . $handlerClassName . ") not found." );
+        else
+        {
+            throw new Exception( "Import handler (" . $handlerClassName . ") not found." );
+        }
     }
 
-    function getData ( $namespace )
+    public function getData( $namespace )
     {
         $this->namespaces[] = $namespace;
-        $this->namespaces = array_unique( 
-            $this->namespaces );
-        if ( is_object( 
-            $this->source ) and is_a( 
-            $this->source, 
-            'eZDBInterface' ) )
+        $this->namespaces = array_unique( $this->namespaces );
+        if ( is_object( $this->source ) and is_a( $this->source, 'eZDBInterface' ) )
         {
-            $this->data[$namespace] = & $this->source->arrayQuery( 
-                "SELECT * FROM " . $namespace );
+            $this->data[$namespace] = & $this->source->arrayQuery( "SELECT * FROM " . $namespace );
         }
     }
 
-    function processData ( $namespace = false, $options = false )
+    public function processData( $namespace = false, $options = false )
     {
-        if ( $namespace and array_key_exists( 
-            $namespace, 
-            $this->data ) )
-            $data = & $this->data[$namespace]; else
+        if ( $namespace and array_key_exists( $namespace, $this->data ) )
+            $data = & $this->data[$namespace];
+        else
             $data = & $this->data;
-        for ( $i = 0; $i < count( 
-            $data ); $i ++ )
+        for ( $i = 0; $i < count( $data ); $i ++ )
         {
-            if ( array_key_exists( 
-                'map', 
-                $options ) )
+            if ( array_key_exists( 'map', $options ) )
             {
-                unset( 
-                    $new );
-                $new = array( );
+                unset( $new );
+                $new = array();
                 foreach ( $this->data[$namespace][$i] as $key => $value )
                 {
-                    if ( array_key_exists( 
-                        $key, 
-                        $options['map'] ) )
+                    if ( array_key_exists( $key, $options['map'] ) )
                     {
                         $new[$options['map'][$key]] = $this->data[$namespace][$i][$key];
                     }
@@ -140,80 +125,63 @@ class eZImportFramework
         }
     }
 
-    function log ( $log )
+    static function log( $log )
     {
-        eZLog::write( 
-            $log, 
-            "import.log" );
+        eZLog::write( $log, "import.log" );
     }
 
-    function importData ( $processHandler, $namespace = false, $options = array() )
+    public function importData( $processHandler, $namespace = false, $options = array() )
     {
         $result = null;
-        if ( array_key_exists( 
-            "access", 
-            $options ) )
-            $this->changeSiteAccess( 
-                $options['access'] );
-        $processHandlerImp = eZImportProcess::instance( 
-            $processHandler );
-        $processHandlerImp->setOptions( 
-            $options );
-        if ( $namespace and !$options['ignore_data_namespace'] )
+        if ( array_key_exists( "access", $options ) )
+        {
+            self::changeSiteAccess( $options['access'] );
+        }
+        $processHandlerImp = eZImportProcess::instance( $processHandler );
+        $processHandlerImp->setOptions( $options );
+        if ( $namespace and ! $options['ignore_data_namespace'] )
         {
             $processHandlerImp->setNamespace( $namespace );
             $result = $processHandlerImp->run( $this->data[$namespace], $namespace );
         }
         elseif ( $namespace and $options['ignore_data_namespace'] )
         {
-            $processHandlerImp->setNamespace( 
-                $namespace );
-            $result = $processHandlerImp->run( 
-                $this->data, 
-                $namespace );
+            $processHandlerImp->setNamespace( $namespace );
+            $result = $processHandlerImp->run( $this->data, $namespace );
         }
         else
         {
-            $processHandlerImp->setNamespace( 
-                null );
-            $result = $processHandlerImp->run( 
-                $this->data, 
-                null );
+            $processHandlerImp->setNamespace( null );
+            $result = $processHandlerImp->run( $this->data, null );
         }
-        if ( array_key_exists( 
-            "access", 
-            $options ) )
-            $this->resetSiteAccess();
-        unset( 
-            $processHandlerImp );
-
+        if ( array_key_exists( "access", $options ) )
+        {
+            self::resetSiteAccess();
+        }
+        unset( $processHandlerImp );
+        
         return $result;
     }
 
-    //staic
-    function changeSiteAccess ( $name )
+    static function changeSiteAccess( $name )
     {
         $GLOBALS['eZImportOldAccess'] = $GLOBALS['eZCurrentAccess'];
         $GLOBALS['eZImportOldDefaultLanguage'] = $GLOBALS['eZContentObjectDefaultLanguage'];
         $access = array( 
             'name' => $name , 
-            'type' => EZ_ACCESS_TYPE_STATIC );
-        $access = changeAccess( 
-            $access );
+            'type' => EZ_ACCESS_TYPE_STATIC 
+        );
+        $access = changeAccess( $access );
         $GLOBALS['eZCurrentAccess'] = & $access;
-        $ini = & eZINI::instance();
-        $GLOBALS['eZContentObjectDefaultLanguage'] = $ini->variable( 
-            'RegionalSettings', 
-            'ContentObjectLocale' );
+        $ini = eZINI::instance();
+        $GLOBALS['eZContentObjectDefaultLanguage'] = $ini->variable( 'RegionalSettings', 'ContentObjectLocale' );
     }
 
-    //static
-    function resetSiteAccess ()
+    static function resetSiteAccess()
     {
         $GLOBALS['eZContentObjectDefaultLanguage'] = $GLOBALS['eZImportOldDefaultLanguage'];
         $access = $GLOBALS['eZImportOldAccess'];
-        $access = changeAccess( 
-            $access );
+        $access = changeAccess( $access );
         $GLOBALS['eZCurrentAccess'] = & $access;
     }
 }

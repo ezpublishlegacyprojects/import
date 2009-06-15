@@ -1,4 +1,5 @@
 <?php
+
 /**
  * File containing the eZImportConverter class.
  *
@@ -9,61 +10,56 @@
  */
 class eZImportConverter
 {
-	public $filters = array();
-	function eZImportConverter( $text )
-	{
-		$this->text = &$text;
-	}
-	function addFilter( $name )
-	{
-		$this->filters[] = $name; 
-	}
-	function run()
-	{
-		foreach ( $this->filters as $filter )
-		{
-			$impl = $this->filterInstance( $filter );
-			$return = $impl->recursiveFilter( $this->text );
-		}
-		return $return;
-	}
-	function recursiveFilter( $data )
-	{
-	    if( is_array( $data ) )
-	    {
-	        foreach ( $data as $key => $row  )
-	        {
-	            if( is_array( $data[$key] ) )
-	               $data[$key] = $this->recursiveFilter( $row );
-	            else
-	               $data[$key] = $this->filter( $row );
-	        }
-	    }
-	    else
-	       $data = $this->filter( $data );
-	    return $data;
-	}
-	function filterInstance( $handlerName )
-	{
-		$handlerClassName = $handlerName . 'filter';
+    public $filters = array();
+
+    function eZImportConverter( $text )
+    {
+        $this->text = &$text;
+    }
+
+    function addFilter( $name )
+    {
+        $this->filters[] = $name;
+    }
+
+    function run()
+    {
+        foreach ( $this->filters as $filter )
+        {
+            $impl = $this->filterInstance( $filter );
+            $return = $this->recursiveFilter( $this->text, $impl );
+        }
+        return $return;
+    }
+
+    function recursiveFilter( $data, $filter )
+    {
+        if ( is_array( $data ) )
+        {
+            foreach ( $data as $key => $row )
+            {
+                if ( is_array( $data[$key] ) )
+                    $data[$key] = $this->recursiveFilter( $row );
+                else
+                    $data[$key] = $filter->filter( $row );
+            }
+        }
+        else
+            $data = $filter->filter( $data );
+        return $data;
+    }
+
+    function filterInstance( $handlerName )
+    {
+        $handlerClassName = $handlerName . 'filter';
         if ( class_exists( $handlerClassName ) )
         {
-        	$handler = new $handlerClassName;
+            $handler = new $handlerClassName( );
             return $handler;
         }
-        else return false;
-	}
+        else
+            return false;
+    }
 }
 
-class eZImportFilter
-{
-	function eZImportFilter()
-	{
-		
-	}
-	function filter( $text )
-	{
-		return $text;
-	}
-}
 ?>
