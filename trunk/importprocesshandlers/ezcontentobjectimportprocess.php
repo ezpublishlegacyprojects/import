@@ -343,9 +343,13 @@ class eZContentObjectImportProcess extends eZImportProcess
             }
             $log .= " owner #" . $contentObject->attribute( "owner_id" );
             if ( $contentObject->attribute( "main_node_id" ) )
+            {
                 $log .= " and Main Node " . $contentObject->attribute( "main_node_id" );
+            }
             else
-                $log .= " and no Main Node ";
+            {
+            	$log .= " and no Main Node ";
+            }
             
             eZImportFramework::log( $log );
             
