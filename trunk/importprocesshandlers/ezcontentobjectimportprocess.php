@@ -335,7 +335,6 @@ class eZContentObjectImportProcess extends eZImportProcess
             ) );
             switch ( $operationResult['status'] )
             {
-                case eZModuleOperationInfo::STATUS_REPEAT:
                 case eZModuleOperationInfo::STATUS_HALTED:
                 case eZModuleOperationInfo::STATUS_CANCELLED:
                     {
