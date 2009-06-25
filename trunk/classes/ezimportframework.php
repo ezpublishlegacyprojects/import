@@ -36,7 +36,7 @@ class eZImportFramework
     // if record exists - no update - no creation - only return node
     const METHOD_NO_UPDATE_IF_EXIST = "no_update_if_exist";
     public $processHandler;
-    public $data;
+    public $data = array();
     public $eZKeyConverter;
     public $source;
     public $namespaces = array();

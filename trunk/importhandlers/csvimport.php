@@ -64,9 +64,17 @@ class CSVImportHandler extends eZImportFramework
             }
         }
         if ( $namespace )
-            $this->data[$namespace] = array_merge( $this->data, $result );
+        {
+            if (!is_array($this->data[$namespace]))        
+            {
+                $this->data[$namespace] = array();
+            }
+            $this->data[$namespace] = array_merge( $this->data[$namespace], $result );
+        }
         else
-            $this->data = array_merge( $this->data[$namespace], $result );
+        {
+            $this->data = array_merge( $this->data, $result ); 
+        }            
     }
 }
 ?>
