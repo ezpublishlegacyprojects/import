@@ -65,7 +65,7 @@ class CSVImportHandler extends eZImportFramework
         }
         if ( $namespace )
         {
-            if (!is_array($this->data[$namespace]))        
+            if ( !array_key_exists($namespace,$this->data) or !is_array($this->data[$namespace]))        
             {
                 $this->data[$namespace] = array();
             }

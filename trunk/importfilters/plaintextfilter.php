@@ -30,7 +30,7 @@ class plaintextfilter extends eZImportFilter
         return $data;
     }
 
-    function removeHTMLEntities( $string )
+    static public function removeHTMLEntities( $string )
     {
         // replace numeric entities
         $string = preg_replace( '~&#x([0-9a-f]+);~ei', 'chr(hexdec("\\1"))', $string );

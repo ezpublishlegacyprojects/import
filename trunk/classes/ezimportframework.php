@@ -101,7 +101,20 @@ class eZImportFramework
             $this->data[$namespace] = & $this->source->arrayQuery( "SELECT * FROM " . $namespace );
         }
     }
-
+    static public function convertCharset( &$mix, $from = 'UTF-8, ISO-8859-1', $to = 'UTF-8' )
+    {
+if (is_array($mix))
+{
+foreach( $mix as $key => $value )
+{
+self::convertCharset( $mix[$key], $from, $to );
+}
+}
+elseif( is_string($mix))
+{
+	$mix = mb_convert_encoding( $mix, $to, mb_detect_encoding( $mix, $from, true ) );
+}
+    }
     public function processData( $namespace = false, $options = false )
     {
         if ( $namespace and array_key_exists( $namespace, $this->data ) )

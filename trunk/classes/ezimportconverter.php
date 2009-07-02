@@ -19,7 +19,15 @@ class eZImportConverter
 
     function addFilter( $name )
     {
-        $this->filters[] = $name;
+if (class_exists( $name . 'filter' ) )
+{
+   $this->filters[] = $name;
+}
+else
+{
+           throw new Exception( "Filter $name not found." );
+}
+     
     }
 
     function run()
@@ -39,7 +47,7 @@ class eZImportConverter
             foreach ( $data as $key => $row )
             {
                 if ( is_array( $data[$key] ) )
-                    $data[$key] = $this->recursiveFilter( $row );
+                    $data[$key] = $this->recursiveFilter( $row, $filter );
                 else
                     $data[$key] = $filter->filter( $row );
             }
@@ -58,7 +66,7 @@ class eZImportConverter
             return $handler;
         }
         else
-            return false;
+           throw new Exception( "Filter $handlerName not found." );
     }
 }
 

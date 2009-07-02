@@ -659,6 +659,7 @@ WHERE
                 }
                 break;
             case 'eztext':
+	         
                 $contentObjectAttribute->setAttribute( 'data_text', $data );
                 $contentObjectAttribute->store();
                 break;
