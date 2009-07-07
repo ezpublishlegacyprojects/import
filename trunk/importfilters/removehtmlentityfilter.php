@@ -23,6 +23,7 @@ static public function convertSmartQuotes($string)
                     '&#146;', 
                     '&#147;', 
                     '&#148;', 
+                    '&#150;',
                     '&#151;',
                     '&#132;'
 ); 
@@ -31,6 +32,7 @@ static public function convertSmartQuotes($string)
                      "'", 
                      '"', 
                      '"', 
+                     '-',
                      '-',
 		       '"'); 
  
