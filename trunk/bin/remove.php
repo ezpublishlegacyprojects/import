@@ -152,10 +152,6 @@ $sqlText="SELECT * FROM   ezcontentobject
 WHERE  remote_id like '%".$deletestring."%' AND ".$classIdString."  
 ORDER BY id ASC";
 
-/*$sqlText="SELECT * FROM   ezcontentobject 
-WHERE  remote_id like '%".$deletestring."%' AND contentclass_id='". $class->ID ."'  
-ORDER BY id ASC";*/
-
 $db = eZDB::instance();
 $rows = $db->arrayQuery( $sqlText );
 
