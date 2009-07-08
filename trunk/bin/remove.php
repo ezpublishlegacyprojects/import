@@ -7,6 +7,7 @@
  * @copyright Copyright (C) 2007 xrow. All rights reserved.
  * @license http://www.gnu.org/licenses/gpl.txt GPL License
  */ 
+require_once( 'autoload.php' );
 /*
 Remove imported Contenobjects:
 
@@ -25,10 +26,10 @@ php extension/import/bin/remove.php --class=1,2
 	=> remove all folder(1) and article(2) contentobjects  which remoteId starts with 'ezimport'    
 
 php extension/import/bin/remove.php --class=folder --namespace=FolderImport
-   	=> remove all folder contentobjects which remoteId starts with 'ezimport:FolderImport'   
+   	=> remove all folder contentobjects which remoteId starts with 'ezimport::FolderImport'   
 
 php extension/import/bin/remove.php --class=folder --namespace=FolderImport --simulate
-   	=> Simulation: remove all folder contentobjects which remoteId starts with 'ezimport:FolderImport'    
+   	=> Simulation: remove all folder contentobjects which remoteId starts with 'ezimport::FolderImport'    
    	=> to test which contentobject will be deleted
 */
 
@@ -37,10 +38,8 @@ $readme  = <<< README
 README:
 This scrip tis dependant on the extension IMPORT from the PUBSVN.
 README;
-include_once( 'lib/ezutils/classes/ezcli.php' );
-include_once( 'kernel/classes/ezscript.php' );
-$cli =& eZCLI::instance();
-$script =& eZScript::instance( array( 'description' => ( "Remove import script. " . $readme .
+$cli = eZCLI::instance();
+$script = eZScript::instance( array( 'description' => ( "Remove import script. " . $readme .
                                                          "\n" .
                                                          "php extension/import/bin/remove.php --class=2,10\n".
                                                          "php extension/import/bin/remove.php --class=article --namespace=ArticleImport" ),
@@ -61,7 +60,7 @@ $options = $script->getOptions( "[class:][namespace;][simulate]",
 $script->initialize();
 
 
-$sys =& eZSys::instance();
+$sys = eZSys::instance();
 
 // get all classes 
 
@@ -77,7 +76,6 @@ else
 {
 	$classListOption = explode(',',$options['class']);
 	
-	include_once( 'kernel/classes/ezcontentobject.php' );
 	foreach ( $classListOption as $class )
 	{
 		// if class id is set
@@ -116,7 +114,6 @@ if( count($classIdList) == 0 )
 $cli->output( 'Using Siteaccess '.$GLOBALS['eZCurrentAccess']['name'] );
 
 // login as admin
-include_once( 'kernel/classes/datatypes/ezuser/ezuser.php' );
 $user = eZUser::fetchByName( 'admin' );
 
 if ( is_object( $user ) )
@@ -133,7 +130,7 @@ else
 // default namespace
 $deletestring ="ezimport";
 if ( $options['namespace'] )
-	$deletestring ="ezimport:".$options['namespace'];
+	$deletestring ="ezimport::".$options['namespace'];
 
 $classIdString = '';
 $count=0;
@@ -183,7 +180,6 @@ foreach( $rows as $row )
 $cli->output("++ Delete $count ContentObjects ++");
 if ( $options['simulate'] === true )
 $cli->output('########### This is only a Simulation - no data were deleted ############');
-
 
 return $script->shutdown();
 ?>
