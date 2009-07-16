@@ -34,7 +34,7 @@ class CSVImportHandler extends eZImportFramework
             if ( ! empty( $row ) )
                 $fields[] = $row;
         }
-        
+
         $meta = array_shift( $fields );
         for ( $i = 0; count( $meta ) > $i; $i ++ )
         {
@@ -43,10 +43,10 @@ class CSVImportHandler extends eZImportFramework
             $meta[$i] = str_replace( '"', '', $meta[$i] );
             $meta[$i] = str_replace( "'", '', $meta[$i] );
         }
-        
+
         for ( $i = 0; $i <= count( $fields ); $i ++ )
         {
-            if ( count( $fields[1] ) > 0 )
+            if ( count( $fields[0] ) > 0 )
             {
                 for ( $j = 0; $j < count( $fields[$i] ); $j ++ )
                 {
