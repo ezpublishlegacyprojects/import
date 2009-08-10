@@ -19,373 +19,282 @@ class eZContentObjectImportProcess extends eZImportProcess
             $this->setNamespace( $this->options["namespace"] );
         }
         $result = array();
-        if ( isset( $this->options[eZImportFramework::PRESERVED_KEY_CLASS_ID] ) )
-        {
-            $contentClassID = $this->options[eZImportFramework::PRESERVED_KEY_CLASS_ID];
-            $class = eZContentClass::fetch( $contentClassID );
-        }
-        elseif ( isset( $this->options[eZImportFramework::PRESERVED_KEY_CLASS] ) )
-        {
-            $class = eZContentClass::fetchByIdentifier( $this->options[eZImportFramework::PRESERVED_KEY_CLASS] );
-        }
-        if ( ! is_object( $class ) )
-        {
-            throw new Exception( 'Class not found.' );
-        }
-        
-        foreach ( $data as $item )
-        {
+        $contentClassID = $this->options[eZImportFramework::PRESERVED_KEY_CLASS_ID]; 
+        // $class = eZContentClass::fetch( $this->options[eZImportFramework::PRESERVED_KEY_CLASS_ID] );
+        $class = eZContentClass::fetchByIdentifier($this->options[eZImportFramework::PRESERVED_KEY_CLASS]); 
+        // $class = eZContentClass::fetch( $this->options[eZImportFramework::PRESERVED_KEY_CLASS_ID] );
+        if (!is_object($class))
+            $class = eZContentClass::fetch($contentClassID);
+
+        foreach ($data as $item) {
             $parentNodeID = null;
-            if ( array_key_exists( 'parentfind', $this->options ) and $this->options['parentfind'] )
-            {
-                $parentco = eZContentObjectTreeNode::fetchObjectList( eZContentObject::definition( $contentClassID ), null, array( 
-                    'contentclass_id' => $this->options['parentfind']['contentClassID'] , 
-                    'name' => $item[$this->options['parentfind']['attribute'][1]] 
-                ), null, null, true );
-                $parentNodeID = eZContentObjectTreeNode::findMainNode( $parentco[0]->ID );
-            }
-            if ( ! $parentNodeID )
-            {
-                if ( array_key_exists( 'parentNodeID', $this->options ) and is_numeric( $this->options['parentNodeID'] ) )
+            if (array_key_exists('parentfind', $this->options) and $this->options['parentfind']) {
+                $parentco = &eZContentObjectTreeNode::fetchObjectList(eZContentObject::definition($contentClassID),
+                    null,
+                    array ('contentclass_id' => $this->options['parentfind']['contentClassID'], 'name' => $item[$this->options['parentfind']['attribute'][1]]),
+                    null,
+                    null,
+                    true
+                    );
+                $parentNodeID = eZContentObjectTreeNode::findMainNode($parentco[0]->ID);
+            } 
+            if (!$parentNodeID) {
+                if (array_key_exists('parentNodeID', $this->options) and is_numeric($this->options['parentNodeID']))
                     $parentNodeID = $this->options['parentNodeID'];
-                else 
-                    if ( is_numeric( $item[$this->options['parentNodeID']] ) and $item[$this->options['parentNodeID']] )
-                        $parentNodeID = $item[$this->options['parentNodeID']];
-            }
-            if ( ! $parentNodeID )
-            {
-                if ( array_key_exists( 'parentNodeID', $this->options ) and is_numeric( $item['parentNodeID'] ) )
+                else if (is_numeric($item[ $this->options['parentNodeID'] ]) and $item[ $this->options['parentNodeID'] ])
+                    $parentNodeID = $item[ $this->options['parentNodeID'] ];
+            } 
+            if (!$parentNodeID) {
+                if (array_key_exists('parentNodeID', $this->options) and is_numeric($item['parentNodeID']))
                     $parentNodeID = $item['parentNodeID'];
-            }
-            if ( ! $parentNodeID )
-            {
-                if ( is_array( $item['parentNodes'] ) and array_key_exists( 'parentNodes', $item ) and is_numeric( $item['parentNodes'][0] ) )
+            } 
+            if (!$parentNodeID) {
+                if (is_array($item['parentNodes']) and array_key_exists('parentNodes', $item) and is_numeric($item['parentNodes'][0]))
                     $parentNodeID = $item['parentNodes'][0];
-            }
-            if ( ! $parentNodeID )
-            {
-                eZImportFramework::log( "SKIPPING: No Parent Node ID" );
+            } 
+            if (!$parentNodeID) {
+                eZImportFramework::log("SKIPPING: No Parent Node ID");
                 continue;
-            }
-            
-            $locale = eZLocale::instance();
-            if ( array_key_exists( eZImportFramework::PRESERVED_KEY_CREATION_TIMESTAMP, $item ) )
-            {
-                $datetime_create = new eZDateTime( $item[eZImportFramework::PRESERVED_KEY_CREATION_TIMESTAMP] );
-            }
-            else
-            {
-                $datetime_create = new eZDateTime( );
-            }
-            
-            if ( array_key_exists( eZImportFramework::PRESERVED_KEY_MODIFICATION_TIMESTAMP, $item ) )
-            {
-                $datetime_modify = new eZDateTime( $item[eZImportFramework::PRESERVED_KEY_MODIFICATION_TIMESTAMP] );
-            }
-            else
-            {
-                $datetime_modify = new eZDateTime( );
-            }
-            
-            $datetime_create->setLocale( $locale );
-            $datetime_modify->setLocale( $locale );
-            
-            $parentContentObjectTreeNode = eZContentObjectTreeNode::fetch( $parentNodeID );
-            if ( ! is_object( $parentContentObjectTreeNode ) )
-            {
-                eZImportFramework::log( "SKIPPING: No Node ID '" . $parentNodeID . "'" );
+            } 
+
+            $locale = &eZLocale::instance();
+            if (array_key_exists(eZImportFramework::PRESERVED_KEY_CREATION_TIMESTAMP, $item)) {
+                $datetime_create = new eZDateTime($item[eZImportFramework::PRESERVED_KEY_CREATION_TIMESTAMP]);
+            } else {
+                $datetime_create = new eZDateTime();
+            } 
+
+            if (array_key_exists(eZImportFramework::PRESERVED_KEY_MODIFICATION_TIMESTAMP, $item)) {
+                $datetime_modify = new eZDateTime($item[eZImportFramework::PRESERVED_KEY_MODIFICATION_TIMESTAMP]);
+            } else {
+                $datetime_modify = new eZDateTime();
+            } 
+
+            $datetime_create->setLocale($locale);
+            $datetime_modify->setLocale($locale);
+
+            $parentContentObjectTreeNode = eZContentObjectTreeNode::fetch($parentNodeID);
+            if (!is_object($parentContentObjectTreeNode)) {
+                eZImportFramework::log("SKIPPING: No Node ID '" . $parentNodeID . "'");
                 continue;
-            }
-            $parentContentObject = $parentContentObjectTreeNode->attribute( "object" );
-            $sectionID = $parentContentObject->attribute( 'section_id' );
-            
+            } 
+            $parentContentObject = $parentContentObjectTreeNode->attribute("object");
+            $sectionID = $parentContentObject->attribute('section_id'); 
             // TODO create a new object or get an existing version
-            
-
-            // ================================================		
+            // ================================================
             // Create a new Version or Update an existing item
-            //=================================================
-            
-
+            // =================================================
             // set default import Method
-            if ( ! array_key_exists( eZImportFramework::METHOD, $item ) and array_key_exists( eZImportFramework::METHOD, $this->options ) )
+            if (!array_key_exists(eZImportFramework::METHOD, $item) and array_key_exists(eZImportFramework::METHOD, $this->options))
                 $item[eZImportFramework::METHOD] = $this->options[eZImportFramework::METHOD];
-            if ( ! array_key_exists( eZImportFramework::METHOD, $item ) )
-            {
+            if (!array_key_exists(eZImportFramework::METHOD, $item)) {
                 $item[eZImportFramework::METHOD] = eZImportFramework::METHOD_NO_UPDATE;
-            }
-            
+            } 
+
             $version = null;
             $attribs = null;
             $contentObject = null;
             $logMessageStart = null;
-            
-            if ( array_key_exists( eZImportFramework::PRESERVED_KEY_REMOTE_ID, $item ) )
-            {
-                $remoteIdString = eZImportFramework::REMOTE_ID_TAG . ":" . $this->namespace . ":" . $item[eZImportFramework::PRESERVED_KEY_REMOTE_ID];
-            }
-            else
-            {
-                $remoteIdString = eZImportFramework::REMOTE_ID_TAG . ":" . $this->namespace . ":" . md5( (string) mt_rand() . (string) mktime() );
-            }
-            
-            $owner = null;
-            
-            // set Owner
-            if ( array_key_exists( eZImportFramework::PRESERVED_KEY_OWNER_ID, $item ) and is_object( eZUser::fetch( $item[eZImportFramework::PRESERVED_KEY_OWNER_ID] ) ) )
-                $owner = $item[eZImportFramework::PRESERVED_KEY_OWNER_ID];
-            elseif ( array_key_exists( eZImportFramework::PRESERVED_KEY_OWNER_ID, $this->options ) )
-                $owner = $this->options[eZImportFramework::PRESERVED_KEY_OWNER_ID];
-                
-            // only can update if a remote id is set and the object exists
-            if ( array_key_exists( eZImportFramework::PRESERVED_KEY_REMOTE_ID, $item ) )
-            {
-                
-                $contentObject = eZContentObject::fetchByRemoteID( $remoteIdString );
-            }
-            
-            $isSetNoUpdateNoCreate = false;
-            
-            // create or update object?	
-            switch ( $item[eZImportFramework::METHOD] )
-            {
-                case eZImportFramework::METHOD_AUTO:
-                case eZImportFramework::METHOD_UPDATE:
-                    
-                    // only can update if a remote id is set and the object exists	
-                    if ( is_object( $contentObject ) )
-                    {
-                        // get a new version of the content object
-                        $version = $contentObject->createNewVersion( false, false, 'eng-GB', false );
-                        
-                        // if new version delete all existing objectrelations 
-                        // because they will be set again otherwise there are double entities
-                        
 
+            if (array_key_exists(eZImportFramework::PRESERVED_KEY_REMOTE_ID, $item)) {
+                $remoteIdString = eZImportFramework::REMOTE_ID_TAG . ":" . $this->namespace . ":" . $item[eZImportFramework::PRESERVED_KEY_REMOTE_ID];
+            } else {
+                $remoteIdString = eZImportFramework::REMOTE_ID_TAG . ":" . $this->namespace . ":" . md5((string)mt_rand() . (string)mktime());
+            } 
+
+            $owner = null; 
+            // set Owner
+            if ($item[eZImportFramework::PRESERVED_KEY_OWNER_ID] and is_object(eZUser::fetch($item[eZImportFramework::PRESERVED_KEY_OWNER_ID])))
+                $owner = $item[eZImportFramework::PRESERVED_KEY_OWNER_ID];
+            elseif (array_key_exists(eZImportFramework::PRESERVED_KEY_OWNER_ID, $this->options))
+                $owner = $this->options[eZImportFramework::PRESERVED_KEY_OWNER_ID]; 
+            // only can update if a remote id is set and the object exists
+            if (array_key_exists(eZImportFramework::PRESERVED_KEY_REMOTE_ID, $item)) {
+                $contentObject = eZContentObject::fetchByRemoteID($remoteIdString);
+            } 
+
+            $isSetNoUpdateNoCreate = false; 
+            // create or update object?
+            switch ($item[eZImportFramework::METHOD]) {
+                case eZImportFramework::METHOD_AUTO:
+                case eZImportFramework::METHOD_UPDATE: 
+                    // only can update if a remote id is set and the object exists
+                    if (is_object($contentObject)) {
+                        // get a new version of the content object
+                        $version = $contentObject->createNewVersion(false, false, 'eng-GB', false); 
+                        // if new version delete all existing objectrelations
+                        // because they will be set again otherwise there are double entities
                         // DELETE: All relations from actual version
                         // see storeAttributes .... objectrelationlist
                         $toObjectID = false; // if false all related objects are removed
-                        $fromObjectVersion = $version->attribute( 'version' );
-                        $fromObjectID = $contentObject->attribute( 'id' );
-                        $attributeID = false;
-                        
-                        #eZContentObject::removeContentObjectRelation($toObjectID, $fromObjectVersion, $fromObjectID, $attributeID);
-                        $contentObject->removeContentObjectRelation( $toObjectID, $fromObjectVersion, $attributeID );
-                        #eZContentObject::removeContentObjectRelation($toObjectID, $fromObjectVersion, $fromObjectID, $attributeID);
-                        #eZContentObject::removeContentObjectRelation($toObjectID, $fromObjectVersion, $attributeID);
-                        
+                        $fromObjectVersion = $version->attribute('version');
+                        $fromObjectID = $contentObject->attribute('id');
+                        $attributeID = false; 
+                        // eZContentObject::removeContentObjectRelation($toObjectID, $fromObjectVersion, $fromObjectID, $attributeID);
+                        $contentObject->removeContentObjectRelation($toObjectID, $fromObjectVersion, $attributeID); 
+                        // eZContentObject::removeContentObjectRelation($toObjectID, $fromObjectVersion, $fromObjectID, $attributeID);
+                        // eZContentObject::removeContentObjectRelation($toObjectID, $fromObjectVersion, $attributeID);
+                        $version->setAttribute('user_id', $owner); 
+                        // $version->setAttribute( 'owner_id', $owner );
+                        // $attribs = $version->contentObjectAttributes();
+                        $logMessageStart = 'New Version (' . $version->attribute('version') . ')';
+                        break;
+                    } 
+                case eZImportFramework::METHOD_NO_UPDATE_IF_EXIST: 
+                    // if exist no update only return node e.g. for KeyConverter
+                    if (is_object($contentObject)) {
+                        array_push($result, $contentObject);
 
-                        $version->setAttribute( 'user_id', $owner );
-                        //$version->setAttribute( 'owner_id', $owner );
-                        //$attribs = $version->contentObjectAttributes();
-                        $logMessageStart = 'New Version (' . $version->attribute( 'version' ) . ')';
-                        break;
-                    }
-                case eZImportFramework::METHOD_NO_UPDATE_IF_EXIST:
-                    // if exist no update only return node e.g. for KeyConverter 
-                    if ( is_object( $contentObject ) )
-                    {
-                        
-                        array_push( $result, $contentObject );
-                        
-                        $objectId = $contentObject->attribute( 'id' );
-                        $remoteId = $contentObject->attribute( 'remote_id' );
+                        $objectId = $contentObject->attribute('id');
+                        $remoteId = $contentObject->attribute('remote_id');
                         $log = "[EXIST] ContentObject already exists! ObjectId=($objectId) RemoteId=($remoteId)";
-                        
-                        eZImportFramework::log( $log );
-                        
+
+                        eZImportFramework::log($log);
+
                         $isSetNoUpdateNoCreate = true;
-                        
+
                         break;
-                    
-                    }
-                
+                    } 
+
                 case eZImportFramework::METHOD_NO_UPDATE:
-                default:
-                    
+                default: 
                     // set remote_id null if there is an object with the same remote_id
                     // because we want to have no Updates !!!
-                    if ( is_object( $contentObject ) )
-                    {
-                        
+                    if (is_object($contentObject)) {
                         $log = "[Create] Remote_id already exists! Resetting (" . $remoteIdString . ") to default";
                         $item[eZImportFramework::PRESERVED_KEY_REMOTE_ID] = null;
-                        eZImportFramework::log( $log );
-                    }
-                    
+                        eZImportFramework::log($log);
+                    } 
                     // create new ContentObject
-                    $contentObject = $class->instantiate( $owner, $sectionID );
-                    
-                    /*
-					if ( $item[EZ_IMPORT_PRESERVED_KEY_OWNER_ID] and is_object( eZUser::fetch( $item[EZ_IMPORT_PRESERVED_KEY_OWNER_ID] ) ) )
-						$contentObject = $class->instantiate( $item[EZ_IMPORT_PRESERVED_KEY_OWNER_ID], $sectionID );
-					elseif( array_key_exists( EZ_IMPORT_PRESERVED_KEY_OWNER_ID, $this->options ) )
-						$contentObject = $class->instantiate( $this->options[EZ_IMPORT_PRESERVED_KEY_OWNER_ID], $sectionID );
-			*/
-                    
-                    $version = $contentObject->currentVersion();
-                    $logMessageStart = "New Object (" . $contentObject->attribute( 'class_identifier' ) . ") ";
-                    //	$attribs = $contentObject->contentObjectAttributes();
-                    
+                    $contentObject = $class->instantiate($owner, $sectionID);
 
+                    /*
+                    if ( $item[EZ_IMPORT_PRESERVED_KEY_OWNER_ID] and is_object( eZUser::fetch( $item[EZ_IMPORT_PRESERVED_KEY_OWNER_ID] ) ) )
+                        $contentObject = $class->instantiate( $item[EZ_IMPORT_PRESERVED_KEY_OWNER_ID], $sectionID );
+                    elseif( array_key_exists( EZ_IMPORT_PRESERVED_KEY_OWNER_ID, $this->options ) )
+                        $contentObject = $class->instantiate( $this->options[EZ_IMPORT_PRESERVED_KEY_OWNER_ID], $sectionID );
+            */
+
+                    $version = $contentObject->currentVersion();
+                    $logMessageStart = "New Object (" . $contentObject->attribute('class_identifier') . ") "; 
+                    // $attribs = $contentObject->contentObjectAttributes();
                     break;
-            }
-            
-            if ( $isSetNoUpdateNoCreate == true )
-            {
+            } 
+
+            if ($isSetNoUpdateNoCreate == true) {
                 continue;
-            }
-            
-            $version->setAttribute( 'status', eZContentObjectVersion::STATUS_DRAFT );
-            $version->store();
-            
+            } 
+
+            $version->setAttribute('status', eZContentObjectVersion::STATUS_DRAFT);
+            $version->store(); 
             // === End of Switch - create or update object
             // ===========================================
-            
-
-            if ( ! is_object( $contentObject ) )
-            {
-                eZImportFramework::log( "SKIPPING: No owner defined." );
+            if (!is_object($contentObject)) {
+                eZImportFramework::log("SKIPPING: No owner defined.");
                 continue;
-            }
-            
-            //default node settings
+            } 
+            // default node settings
             $node_defaults = array();
-            if ( array_key_exists( 'sort_field', $this->options ) )
+            if (array_key_exists('sort_field', $this->options))
                 $node_defaults['sort_field'] = $this->options['sort_field'];
-            if ( array_key_exists( 'sort_order', $this->options ) )
-                $node_defaults['sort_order'] = $this->options['sort_order'];
-                //create nodes
-            $merged_node_array = array_merge( $node_defaults, array( 
-                'contentobject_id' => $contentObject->attribute( 'id' ) , 
-                'contentobject_version' => $contentObject->attribute( 'current_version' ) , /* @TODO version */
-                'parent_node' => $parentContentObjectTreeNode->attribute( 'node_id' ) , 
-                'is_main' => 1 
-            ) );
-            
-            $nodeAssignment = eZNodeAssignment::create( $merged_node_array );
+            if (array_key_exists('sort_order', $this->options))
+                $node_defaults['sort_order'] = $this->options['sort_order']; 
+            // create nodes
+            $merged_node_array = array_merge($node_defaults,
+                array('contentobject_id' => $contentObject->attribute('id'),
+                    /* TODO version*/ 'contentobject_version' => $contentObject->attribute('current_version'),
+                    'parent_node' => $parentContentObjectTreeNode->attribute('node_id'),
+                    'is_main' => 1
+                    ));
+
+            $nodeAssignment = &eZNodeAssignment::create($merged_node_array);
             $nodeAssignment->store();
-            
-            if ( array_key_exists( 'parentNodes', $item ) and is_array( $item['parentNodes'] ) )
-            {
+
+            if (array_key_exists('parentNodes', $item) and is_array($item['parentNodes'])) {
                 $skip = true;
-                foreach ( $item['parentNodes'] as $node_id )
-                {
-                    if ( $skip )
-                    {
+                foreach ($item['parentNodes'] as $node_id) {
+                    if ($skip) {
                         $skip = false;
                         continue;
-                    }
-                    if ( is_numeric( $node_id ) and is_object( eZContentObjectTreeNode::fetch( $node_id ) ) )
-                    {
-                        $nodeAssignment = eZNodeAssignment::create( array_merge( $node_defaults, array( 
-                            'contentobject_id' => $contentObject->attribute( 'id' ) , 
-                            'contentobject_version' => $contentObject->attribute( 'current_version' ) , 
-                            'parent_node' => $node_id , 
-                            'is_main' => 0 
-                        ) ) );
+                    } 
+                    if (is_numeric($node_id) and is_object(eZContentObjectTreeNode::fetch($node_id))) {
+                        $nodeAssignment = &eZNodeAssignment::create(
+                            array_merge($node_defaults,
+                                array('contentobject_id' => $contentObject->attribute('id'),
+                                    'contentobject_version' => $contentObject->attribute('current_version'),
+                                    'parent_node' => $node_id,
+                                    'is_main' => 0
+                                    )
+                                )
+                            );
                         $nodeAssignment->store();
-                    }
-                }
-            }
-            
-            // if $item[eZImportFramework::PRESERVED_KEY_REMOTE_ID] == null ez will generate a remoteid
-            $contentObject->setAttribute( 'remote_id', $item[eZImportFramework::PRESERVED_KEY_REMOTE_ID] );
-            
-            $contentObject->setAttribute( 'modified', $datetime_modify->timeStamp() );
-            $contentObject->setAttribute( 'published', $datetime_create->timeStamp() );
-            //	$contentObject->setAttribute( 'owner_id', $owner );
-            
-
+                    } 
+                } 
+            } 
+            // if $item[EZ_IMPORT_PRESERVED_KEY_REMOTE_ID] == null ez will generate a remoteid
+            $contentObject->setAttribute('remote_id', $item[eZImportFramework::PRESERVED_KEY_REMOTE_ID]); 
+            // $contentObject->setAttribute( 'remote_id', $item[$remote_id] );
+            // $contentObject->setAttribute( 'name', $item[$object_name] );
+            $contentObject->setAttribute('modified', $datetime_modify->timeStamp());
+            $contentObject->setAttribute('published', $datetime_create->timeStamp()); 
+            // $contentObject->setAttribute( 'owner_id', $owner );
             // to generate a remot_id if needed
-            //	$contentObject->store();
-            
-
-            //$contentObject->name();	
-            
-
+            // $contentObject->store();
+            // $contentObject->name();
             // get all attributes and modify data if needed
-            // ----------------------------------------------				
+            // ----------------------------------------------
             $attribs = $contentObject->contentObjectAttributes();
-            
-            for ( $i = 0; $i < count( $attribs ); $i ++ )
-            {
-                $ident = $attribs[$i]->attribute( "contentclass_attribute_identifier" );
-                if ( array_key_exists( $ident, $item ) and $item[$ident] )
-                {
+
+            for($i = 0;$i < count($attribs);$i++) {
+                $ident = $attribs[$i]->attribute("contentclass_attribute_identifier");
+                if (array_key_exists($ident , $item) and (!empty($item[$ident]) or is_bool($item[$ident])) ) {
                     // modify the input data
-                    $this->storeAttribute( $item[$ident], $attribs[$i] );
-                }
-            }
-            
-            $contentObject->setAttribute( 'modified', $datetime_modify->timeStamp() );
-            $contentObject->setAttribute( 'published', $datetime_create->timeStamp() );
-            $contentObject->setAttribute( 'status', eZContentObjectVersion::STATUS_INTERNAL_DRAFT );
-            
+                    $this->storeAttribute($item[$ident], $attribs[$i]);
+                } 
+            } 
+
+            $contentObject->setAttribute('modified', $datetime_modify->timeStamp());
+            $contentObject->setAttribute('published', $datetime_create->timeStamp());
+            $contentObject->setAttribute('status', eZContentObjectVersion::STATUS_DRAFT); 
             // set remote_id : if $item['remote_id']=null the system genereate a new remote id
             // e.g.   ezimport:namespace:remote_id
-            
-
-            $contentObject->setAttribute( 'remote_id', eZImportFramework::REMOTE_ID_TAG . ":" . $this->namespace . ":" . $contentObject->attribute( 'remote_id' ) );
+            $contentObject->setAttribute('remote_id', eZImportFramework::REMOTE_ID_TAG . ":" . $this->namespace . ":" . $contentObject->attribute('remote_id'));
             $contentObject->store();
-            
-            $operationResult = eZOperationHandler::execute( 'content', 'publish', array( 
-                'object_id' => $contentObject->attribute( 'id' ) , 
-                'version' => $version->attribute( 'version' ) 
-            ) );
-            switch ( $operationResult['status'] )
-            {
-                case eZModuleOperationInfo::STATUS_HALTED:
-                case eZModuleOperationInfo::STATUS_CANCELLED:
-                    {
-                        throw new Exception( "Operation result was not ok. Disable all triggers." );
-                    }
-            }
-            
-            // update objectname		
-            
 
-            $newName = $class->contentObjectName( $contentObject );
-            $contentObject->setName( $newName, $version->attribute( 'version' ) );
-            
-            // set the date after publish - needed if a creation or modification date is set by item	
-            $contentObject->setAttribute( 'modified', $datetime_modify->timeStamp() );
-            $contentObject->setAttribute( 'published', $datetime_create->timeStamp() );
+            $operationResult = eZOperationHandler::execute('content', 'publish', array('object_id' => $contentObject->attribute('id'),
+                    'version' => $version->attribute('version')
+                    )); 
+            // update objectname
+            $newName = $class->contentObjectName($contentObject);
+            $contentObject->setName($newName, $version->attribute('version')); 
+            // set the date after publish - needed if a creation or modification date is set by item
+            $contentObject->setAttribute('modified', $datetime_modify->timeStamp());
+            $contentObject->setAttribute('published', $datetime_create->timeStamp()); 
             // set status on publish - otherwise you can't use this object as an related object
-            $contentObject->setAttribute( 'status', eZContentObjectVersion::STATUS_PUBLISHED );
-            $contentObject->store();
-            $contentObject = eZContentObject::fetch( $contentObject->attribute( 'id' ) );
-            // @TODO Update or Create ContentObject	
-            
-
-            $log = $logMessageStart . ": " . $contentObject->attribute( "name" ) . " #" . $contentObject->attribute( "id" );
-            if ( $item['parentNodes'] )
-            {
-                $log .= " with Nodes " . join( ",", $item['parentNodes'] );
-            }
-            $log .= " owner #" . $contentObject->attribute( "owner_id" );
-            if ( $contentObject->attribute( "main_node_id" ) )
-            {
-                $log .= " and Main Node " . $contentObject->attribute( "main_node_id" );
-            }
+            $contentObject->setAttribute('status', eZContentObjectVersion::STATUS_PUBLISHED);
+            $contentObject->setAttribute('current_version', $version->attribute('version'));
+            $contentObject->store(); 
+            // TODO Update or Create ContentObject
+            $log = $logMessageStart . ": " . $contentObject->attribute("name") . " #" . $contentObject->attribute("id") ;
+            if ($item['parentNodes']) {
+                $log .= " with Nodes " . join(",", $item['parentNodes']) ;
+            } 
+            $log .= " owner #" . $contentObject->attribute("owner_id") ;
+            if ($contentObject->attribute("main_node_id"))
+                $log .= " and Main Node " . $contentObject->attribute("main_node_id");
             else
-            {
                 $log .= " and no Main Node ";
-            }
-            
-            eZImportFramework::log( $log );
-            
-            //Free some memory
+
+            eZImportFramework::log($log); 
+            // Free some memory
             eZContentObject::clearCache();
-            
-            if ( array_key_exists( eZImportFramework::LANGUAGE_TAG, $this->options ) and $this->options[eZImportFramework::LANGUAGE_TAG] != eZContentObject::defaultLanguage() )
-            {
-                
-                eZContentObjectImportProcess::changeLanguageForObject( $contentObject->attribute( "id" ), eZContentObject::defaultLanguage(), $this->options[eZImportFramework::LANGUAGE_TAG] );
-            }
-            
-            array_push( $result, $contentObject );
-        }
+
+            if (array_key_exists(eZImportFramework::LANGUAGE_TAG, $this->options) and $this->options[eZImportFramework::LANGUAGE_TAG] != eZContentObject::defaultLanguage()) {
+                eZContentObjectImportProcess::changeLanguageForObject($contentObject->attribute("id"), eZContentObject::defaultLanguage(), $this->options[eZImportFramework::LANGUAGE_TAG]);
+            } 
+
+            array_push($result, $contentObject);
+        } 
         return $result;
     }
 
