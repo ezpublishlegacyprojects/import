@@ -109,8 +109,22 @@ class eZContentObjectImportProcess extends eZImportProcess
             elseif (array_key_exists(eZImportFramework::PRESERVED_KEY_OWNER_ID, $this->options))
                 $owner = $this->options[eZImportFramework::PRESERVED_KEY_OWNER_ID]; 
             // only can update if a remote id is set and the object exists
-            if (array_key_exists(eZImportFramework::PRESERVED_KEY_REMOTE_ID, $item)) {
+            if (array_key_exists(eZImportFramework::PRESERVED_KEY_REMOTE_ID, $item))
+            {
                 $contentObject = eZContentObject::fetchByRemoteID($remoteIdString);
+                
+                // We need to check if the object is in trash or not...
+                if ( array_key_exists( eZImportFramework::TRASH_HANDLING_DELETE, $item ) )
+                {
+                	if( $item[eZImportFramework::TRASH_HANDLING_DELETE] == true )
+                	{
+                	    if( $contentObject->Status == eZContentObject::STATUS_ARCHIVED )
+		                {
+		                    $contentObject->remove();
+		                    $contentObject = eZContentObject::fetchByRemoteID( $remoteIdString );
+		                }
+                	}
+                }
             } 
 
             $isSetNoUpdateNoCreate = false; 
@@ -118,8 +132,9 @@ class eZContentObjectImportProcess extends eZImportProcess
             switch ($item[eZImportFramework::METHOD]) {
                 case eZImportFramework::METHOD_AUTO:
                 case eZImportFramework::METHOD_UPDATE: 
-                    // only can update if a remote id is set and the object exists
-                    if (is_object($contentObject)) {
+                	// only can update if a remote id is set and the object exists
+                    if (is_object($contentObject))
+                        {
                         // get a new version of the content object
                         $version = $contentObject->createNewVersion(false, false, 'eng-GB', false); 
                         // if new version delete all existing objectrelations
@@ -284,7 +299,19 @@ class eZContentObjectImportProcess extends eZImportProcess
                 $log .= " and Main Node " . $contentObject->attribute("main_node_id");
             else
                 $log .= " and no Main Node ";
-
+            
+            // Change Priority
+            if ( array_key_exists( eZImportFramework::PRESERVED_KEY_MAINNODE_PRIORITY, $item ) )
+            {
+            	if( $contentObject->attribute("main_node_id") > 0 )
+            	{
+            		$treeNode = eZContentObjectTreeNode::fetch( $contentObject->attribute("main_node_id") );
+	                $treeNode->setAttribute( "priority", $item[eZImportFramework::PRESERVED_KEY_MAINNODE_PRIORITY] );
+	                $treeNode->store();
+	                unset( $treeNode );
+            	}
+            }
+            
             eZImportFramework::log($log); 
             // Free some memory
             eZContentObject::clearCache();
@@ -568,7 +595,6 @@ WHERE
                 }
                 break;
             case 'eztext':
-	         
                 $contentObjectAttribute->setAttribute( 'data_text', $data );
                 $contentObjectAttribute->store();
                 break;

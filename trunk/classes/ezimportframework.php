@@ -21,6 +21,7 @@ class eZImportFramework
     const PRESERVED_KEY_CREATION_TIMESTAMP = "creation_timestamp";
     const PRESERVED_KEY_MODIFICATION_TIMESTAMP = "modification_timestamp";
     const PRESERVED_KEY_REMOTE_ID = "remote_id";
+    const PRESERVED_KEY_MAINNODE_PRIORITY = "main_node_priority";
     const REMOTE_ID_TAG = "ezimport";
     const LANGUAGE_TAG = "language";
     // typ of importing Data
@@ -35,6 +36,9 @@ class eZImportFramework
     const METHOD_ALWAYS_CREATE = "always_create";
     // if record exists - no update - no creation - only return node
     const METHOD_NO_UPDATE_IF_EXIST = "no_update_if_exist";
+    // Default. Updates an existing object in trash
+    // Deletes an existing Object from trash and imports it again.
+    const TRASH_HANDLING_DELETE = "delete_from_trash";
     public $processHandler;
     public $data = array();
     public $eZKeyConverter;
