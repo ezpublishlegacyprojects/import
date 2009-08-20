@@ -114,9 +114,9 @@ class eZContentObjectImportProcess extends eZImportProcess
                 $contentObject = eZContentObject::fetchByRemoteID($remoteIdString);
                 
                 // We need to check if the object is in trash or not...
-                if ( array_key_exists( eZImportFramework::TRASH_HANDLING_DELETE, $item ) )
+                if ( array_key_exists( eZImportFramework::TRASH_HANDLING_DELETE, $this->options ) )
                 {
-                	if( $item[eZImportFramework::TRASH_HANDLING_DELETE] == true )
+                	if( $this->options[eZImportFramework::TRASH_HANDLING_DELETE] == true )
                 	{
                 	    if( $contentObject->Status == eZContentObject::STATUS_ARCHIVED )
 		                {
@@ -146,7 +146,9 @@ class eZContentObjectImportProcess extends eZImportProcess
                         $fromObjectID = $contentObject->attribute('id');
                         $attributeID = false; 
                         // eZContentObject::removeContentObjectRelation($toObjectID, $fromObjectVersion, $fromObjectID, $attributeID);
-                        $contentObject->removeContentObjectRelation($toObjectID, $fromObjectVersion, $attributeID); 
+                        // For some reason this happens no more...
+                        // $contentObject->removeContentObjectRelation($toObjectID, $fromObjectVersion, $attributeID);
+                        // 
                         // eZContentObject::removeContentObjectRelation($toObjectID, $fromObjectVersion, $fromObjectID, $attributeID);
                         // eZContentObject::removeContentObjectRelation($toObjectID, $fromObjectVersion, $attributeID);
                         $version->setAttribute('user_id', $owner); 
@@ -301,6 +303,7 @@ class eZContentObjectImportProcess extends eZImportProcess
                 $log .= " and no Main Node ";
             
             // Change Priority
+            #var_dump( $merged_node_array );
             if ( array_key_exists( eZImportFramework::PRESERVED_KEY_MAINNODE_PRIORITY, $item ) )
             {
             	if( $contentObject->attribute("main_node_id") > 0 )
