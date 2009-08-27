@@ -414,9 +414,19 @@ WHERE
                 $contentObjectAttribute->store();
                 break;
             case 'ezprice':
-                $contentObjectAttribute->setAttribute( 'data_float', $data );
+                if ( is_array( $data ) )
+                {
+                    $data_text = $data[ 'vatType' ] . ',' . $data[ 'vatInc' ];
+                    $contentObjectAttribute->setAttribute( 'data_float', $data[ 'price' ] );
+                    $contentObjectAttribute->setAttribute( 'data_text', $data_text );
+                }
+                else
+                {
+                    $contentObjectAttribute->setAttribute( 'data_float', $data );
+                }
                 $contentObjectAttribute->store();
                 break;
+                
             case 'ezboolean':
                 if ( $data )
                 {
