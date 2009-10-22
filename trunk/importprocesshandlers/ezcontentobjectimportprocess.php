@@ -136,7 +136,8 @@ class eZContentObjectImportProcess extends eZImportProcess
                     if (is_object($contentObject))
                         {
                         // get a new version of the content object
-                        $version = $contentObject->createNewVersion(false, false, 'eng-GB', false); 
+                        // INCORRECT: $version = $contentObject->createNewVersion(false, false, 'eng-GB', false);
+                        $version = $contentObject->createNewVersion($contentObject->attribute('current_version'), true, eZContentObject::defaultLanguage(), false); 
                         // if new version delete all existing objectrelations
                         // because they will be set again otherwise there are double entities
                         // DELETE: All relations from actual version
@@ -260,7 +261,8 @@ class eZContentObjectImportProcess extends eZImportProcess
             // $contentObject->name();
             // get all attributes and modify data if needed
             // ----------------------------------------------
-            $attribs = $contentObject->contentObjectAttributes();
+            // INCORRECT: $attribs = $contentObject->contentObjectAttributes();
+            $attribs = $contentObject->contentObjectAttributes( true, $version->attribute('version') );
 
             for($i = 0;$i < count($attribs);$i++) {
                 $ident = $attribs[$i]->attribute("contentclass_attribute_identifier");
