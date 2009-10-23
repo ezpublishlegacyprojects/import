@@ -284,7 +284,8 @@ class eZContentObjectImportProcess extends eZImportProcess
                     'version' => $version->attribute('version')
                     )); 
             // update objectname
-            $newName = $class->contentObjectName($contentObject);
+            // INCORRECT: $newName = $class->contentObjectName($contentObject);
+			$newName = $class->contentObjectName($contentObject, $version->attribute('version'));
             $contentObject->setName($newName, $version->attribute('version')); 
             // set the date after publish - needed if a creation or modification date is set by item
             $contentObject->setAttribute('modified', $datetime_modify->timeStamp());
