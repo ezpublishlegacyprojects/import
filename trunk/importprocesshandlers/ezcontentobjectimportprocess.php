@@ -475,7 +475,7 @@ WHERE
                         if ( ! $handler )
                         {
                             $errors[] = array( 
-                                'description' => ezi18n( 'kernel/classe/datatypes/ezimage', 'Failed to fetch Image Handler. Please contact the site administrator.' ) 
+                                'description' => ezpI18n::tr( 'kernel/classe/datatypes/ezimage', 'Failed to fetch Image Handler. Please contact the site administrator.' ) 
                             );
                             return false;
                         }
@@ -808,7 +808,7 @@ class text2xml extends eZSimplifiedXMLInput
                 $root = & $document->Root;
                 if ( ! count( $root->Children ) )
                 {
-                    $contentObjectAttribute->setValidationError( ezi18n( 'kernel/classes/datatypes', 'Content required' ) );
+                    $contentObjectAttribute->setValidationError( ezpI18n::tr( 'kernel/classes/datatypes', 'Content required' ) );
                     return eZInputValidator::STATE_INVALID;
                 }
             }
